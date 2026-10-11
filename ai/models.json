@@ -1,0 +1,437 @@
+{
+  "version": 1,
+  "packages": [
+    {
+      "repo": "Lykon/dreamshaper-8",
+      "revision": "a7e52b98680b1ba8ff7bce97c7f9f2e2e5337917",
+      "target": "base/dreamshaper-8",
+      "family": "sd15",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "591434041d60521ec6b666b3635a8fa03330435bab1361b0502f968dae3f389a",
+          "size": 2421,
+          "local": "README.md"
+        },
+        {
+          "path": "feature_extractor/preprocessor_config.json",
+          "sha256": "6f638fb9401a6d6296feff533ee7efe657b787c49f954f82f5906b36ef2a1b1f",
+          "size": 520,
+          "local": "feature_extractor/preprocessor_config.json"
+        },
+        {
+          "path": "model_index.json",
+          "sha256": "fcee0918cf5816238f4fd35ce1bdc329616b6213ada6dbf5a22953c71390aa35",
+          "size": 642,
+          "local": "model_index.json"
+        },
+        {
+          "path": "scheduler/scheduler_config.json",
+          "sha256": "725c528a8f6f91d3e11a543718f1066b6d1682a147483c1a4a4aecf67fd9c824",
+          "size": 614,
+          "local": "scheduler/scheduler_config.json"
+        },
+        {
+          "path": "text_encoder/config.json",
+          "sha256": "52e29b35e93261515dc07bf248ec8398a729e54f1886e946f8c095ede26be29b",
+          "size": 724,
+          "local": "text_encoder/config.json"
+        },
+        {
+          "path": "text_encoder/model.fp16.safetensors",
+          "sha256": "fda1f312e49f667179f53878e6ac717d8f37d6119cc5adb76fba88895b94d0a7",
+          "size": 246144152,
+          "local": "text_encoder/model.fp16.safetensors"
+        },
+        {
+          "path": "tokenizer/merges.txt",
+          "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+          "size": 524619,
+          "local": "tokenizer/merges.txt"
+        },
+        {
+          "path": "tokenizer/special_tokens_map.json",
+          "sha256": "c4864a9376a8401918425bed71fc14fc0e81f9b59ec45c1cf96cccb2df508eac",
+          "size": 472,
+          "local": "tokenizer/special_tokens_map.json"
+        },
+        {
+          "path": "tokenizer/tokenizer_config.json",
+          "sha256": "19d7b034cb0cc3ce9766c2231373ab8aa8991fc72e2c8f76558bfaae3de0d563",
+          "size": 737,
+          "local": "tokenizer/tokenizer_config.json"
+        },
+        {
+          "path": "tokenizer/vocab.json",
+          "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
+          "size": 1059962,
+          "local": "tokenizer/vocab.json"
+        },
+        {
+          "path": "unet/config.json",
+          "sha256": "8125830747f921e26e263e394b8954482cf3b4b4f1beb154704ee3cc57042be8",
+          "size": 1868,
+          "local": "unet/config.json"
+        },
+        {
+          "path": "unet/diffusion_pytorch_model.fp16.safetensors",
+          "sha256": "ac0a7f112b9485d3e0c492fad89891ba82c60d7b09653bf5083b5a2b592828f3",
+          "size": 1719125304,
+          "local": "unet/diffusion_pytorch_model.fp16.safetensors"
+        },
+        {
+          "path": "vae/config.json",
+          "sha256": "ac5ee038bf165a245be9259ff14753de0d77d0fe2ee3ac39364c589d44410f48",
+          "size": 756,
+          "local": "vae/config.json"
+        },
+        {
+          "path": "vae/diffusion_pytorch_model.fp16.safetensors",
+          "sha256": "ff38c7ec66a4ae76f466a3ade876522bff4fea8add1981cc433f518666cea33d",
+          "size": 167335342,
+          "local": "vae/diffusion_pytorch_model.fp16.safetensors"
+        }
+      ]
+    },
+    {
+      "repo": "monster-labs/control_v1p_sd15_qrcode_monster",
+      "revision": "560fb7b15d0badb409f8cd578a2bfe63bd4b8046",
+      "target": "controlnet/qr-monster-sd15",
+      "family": "sd15",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "2de60e8601b459121b3ac080dcb5ef6a18e5d34cab9083bd258e1043626b5092",
+          "size": 2721,
+          "local": "README.md"
+        },
+        {
+          "path": "v2/config.json",
+          "sha256": "c6488d01fc339c83d777b6d71df4f5bc36c035b2c977f987e8a5c0a54c79b706",
+          "size": 955,
+          "local": "config.json"
+        },
+        {
+          "path": "v2/diffusion_pytorch_model.safetensors",
+          "sha256": "a95dc35dfff997bd9c751a97db4959db1235f5776ef5e453d468c602c7998794",
+          "size": 1445157120,
+          "local": "diffusion_pytorch_model.safetensors"
+        }
+      ]
+    },
+    {
+      "repo": "stabilityai/stable-diffusion-xl-base-1.0",
+      "revision": "462165984030d82259a11f4367a4eed129e94a7b",
+      "target": "base/sdxl-base",
+      "family": "sdxl",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "40d263065b8a3e9a41996c257e11463fd97ae956ebf4e3f8b9625e0d78183893",
+          "size": 8668,
+          "local": "README.md"
+        },
+        {
+          "path": "model_index.json",
+          "sha256": "6d7b93508390ab91ac5bfbe4aeb4dc2d83f7bb1b05fb069d714b5b0c75f70d44",
+          "size": 609,
+          "local": "model_index.json"
+        },
+        {
+          "path": "scheduler/scheduler_config.json",
+          "sha256": "af3e45a949aff8b8341ab8b811429ec03fee857a700a1d9477363e4fff9666e2",
+          "size": 479,
+          "local": "scheduler/scheduler_config.json"
+        },
+        {
+          "path": "text_encoder/config.json",
+          "sha256": "39b8b2e4b1949e36969caa425b6c81c68bace99198dd9078ce05d16ad401fe7f",
+          "size": 565,
+          "local": "text_encoder/config.json"
+        },
+        {
+          "path": "text_encoder/model.fp16.safetensors",
+          "sha256": "660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd",
+          "size": 246144152,
+          "local": "text_encoder/model.fp16.safetensors"
+        },
+        {
+          "path": "text_encoder_2/config.json",
+          "sha256": "a892d1c3a69a7e9247a24de2bc1d5891e3109a54696e53be20093af671072c34",
+          "size": 575,
+          "local": "text_encoder_2/config.json"
+        },
+        {
+          "path": "text_encoder_2/model.fp16.safetensors",
+          "sha256": "ec310df2af79c318e24d20511b601a591ca8cd4f1fce1d8dff822a356bcdb1f4",
+          "size": 1389382176,
+          "local": "text_encoder_2/model.fp16.safetensors"
+        },
+        {
+          "path": "tokenizer/merges.txt",
+          "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+          "size": 524619,
+          "local": "tokenizer/merges.txt"
+        },
+        {
+          "path": "tokenizer/special_tokens_map.json",
+          "sha256": "c4864a9376a8401918425bed71fc14fc0e81f9b59ec45c1cf96cccb2df508eac",
+          "size": 472,
+          "local": "tokenizer/special_tokens_map.json"
+        },
+        {
+          "path": "tokenizer/tokenizer_config.json",
+          "sha256": "19d7b034cb0cc3ce9766c2231373ab8aa8991fc72e2c8f76558bfaae3de0d563",
+          "size": 737,
+          "local": "tokenizer/tokenizer_config.json"
+        },
+        {
+          "path": "tokenizer/vocab.json",
+          "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
+          "size": 1059962,
+          "local": "tokenizer/vocab.json"
+        },
+        {
+          "path": "tokenizer_2/merges.txt",
+          "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+          "size": 524619,
+          "local": "tokenizer_2/merges.txt"
+        },
+        {
+          "path": "tokenizer_2/special_tokens_map.json",
+          "sha256": "f118ab3a983206e4f32583448de6bd6aae4ee21869135cef1f5848a753cdaab6",
+          "size": 460,
+          "local": "tokenizer_2/special_tokens_map.json"
+        },
+        {
+          "path": "tokenizer_2/tokenizer_config.json",
+          "sha256": "c9d23941f76a41cbd50eda9290f57be7828f0a7a677939e9ef181f7e12bd1bdf",
+          "size": 725,
+          "local": "tokenizer_2/tokenizer_config.json"
+        },
+        {
+          "path": "tokenizer_2/vocab.json",
+          "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
+          "size": 1059962,
+          "local": "tokenizer_2/vocab.json"
+        },
+        {
+          "path": "unet/config.json",
+          "sha256": "30ebc70750223e59006f7f2b4e1e6c102570aa19a9c4ae3e1fbe7591332dbae6",
+          "size": 1680,
+          "local": "unet/config.json"
+        },
+        {
+          "path": "unet/diffusion_pytorch_model.fp16.safetensors",
+          "sha256": "83e012a805b84c7ca28e5646747c90a243c65c8ba4f070e2d7ddc9d74661e139",
+          "size": 5135149760,
+          "local": "unet/diffusion_pytorch_model.fp16.safetensors"
+        },
+        {
+          "path": "vae/config.json",
+          "sha256": "0b331c8ac22ded5f9997a144a575c1d113d6169aff262c353f39015bd24a6264",
+          "size": 642,
+          "local": "vae/config.json"
+        },
+        {
+          "path": "vae/diffusion_pytorch_model.fp16.safetensors",
+          "sha256": "bcb60880a46b63dea58e9bc591abe15f8350bde47b405f9c38f4be70c6161e68",
+          "size": 167335342,
+          "local": "vae/diffusion_pytorch_model.fp16.safetensors"
+        }
+      ]
+    },
+    {
+      "repo": "monster-labs/control_v1p_sdxl_qrcode_monster",
+      "revision": "1ec5dea263b28ba2925151ab5007dfbf9147ad75",
+      "target": "controlnet/qr-monster-sdxl",
+      "family": "sdxl",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "b761a3e7c40dd9a8dc0a9af197fbe956ea3da3a7f443a3badf0b9372b3ea0acc",
+          "size": 2140,
+          "local": "README.md"
+        },
+        {
+          "path": "config.json",
+          "sha256": "3c5f694f62f885cf7ef8521cd94cc5fb2665b004e42e0e1902b58b698459be4b",
+          "size": 1235,
+          "local": "config.json"
+        },
+        {
+          "path": "diffusion_pytorch_model.safetensors",
+          "sha256": "11e49b4e272fabda60094b35be6fd3e215e551211210938e381d27497fd2215c",
+          "size": 5004167864,
+          "local": "diffusion_pytorch_model.safetensors"
+        }
+      ]
+    },
+    {
+      "repo": "Salesforce/blip-image-captioning-base",
+      "revision": "82a37760796d32b1411fe092ab5d4e227313294b",
+      "target": "caption/blip-base",
+      "family": "shared",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "eae8c14a066e611a51a803cccb35c892bbd78d1ca7db45fbb06f5fb79bff7ad1",
+          "size": 6359,
+          "local": "README.md"
+        },
+        {
+          "path": "config.json",
+          "sha256": "f7846f82f4e2c4a2ccbab9ae8b0e44873540a271a76a1288effd078180c13a82",
+          "size": 4563,
+          "local": "config.json"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "sha256": "065c10ec97edc5081fbd9655b3d9d25e2647ea6d5dab873325e88eed12d80a7d",
+          "size": 287,
+          "local": "preprocessor_config.json"
+        },
+        {
+          "path": "pytorch_model.bin",
+          "sha256": "d6638651a5526cc2ede56f2b5104d6851b0755816d220e5e046870430180c767",
+          "size": 989820849,
+          "local": "pytorch_model.bin"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+          "size": 125,
+          "local": "special_tokens_map.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+          "size": 711396,
+          "local": "tokenizer.json"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "sha256": "5c7f96096284c55e539eff95f4451c19efc34258ddb975a4400d052b77301e5e",
+          "size": 506,
+          "local": "tokenizer_config.json"
+        },
+        {
+          "path": "vocab.txt",
+          "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+          "size": 231508,
+          "local": "vocab.txt"
+        }
+      ]
+    },
+    {
+      "repo": "lllyasviel/control_v11f1e_sd15_tile",
+      "revision": "3f877705c37010b7221c3d10743307d6b5b6efac",
+      "target": "structure/tile-sd15",
+      "family": "sd15",
+      "files": [
+        {
+          "path": "README.md",
+          "local": "README.md",
+          "sha256": "395adf03b6eb36d6571b87e8050cf45c55e3cb51651bc741ff58e5012982af6b",
+          "size": 15800
+        },
+        {
+          "path": "config.json",
+          "local": "config.json",
+          "sha256": "c6488d01fc339c83d777b6d71df4f5bc36c035b2c977f987e8a5c0a54c79b706",
+          "size": 955
+        },
+        {
+          "path": "diffusion_pytorch_model.bin",
+          "local": "diffusion_pytorch_model.bin",
+          "sha256": "eb05b4c3665bd76dad70a90652014a9b3aab391abd8a5bb484e860330f9492fb",
+          "size": 1445255176
+        }
+      ]
+    },
+    {
+      "repo": "latentcat/control_v1p_sd15_brightness",
+      "revision": "8509361eb1ba89c03839040ed8c75e5f11bbd9c5",
+      "target": "structure/brightness-sd15",
+      "family": "sd15",
+      "files": [
+        {
+          "path": ".gitattributes",
+          "local": ".gitattributes",
+          "sha256": "db7c0371f46f0840b8f25794c1e3321c9b5820a8cb6ba9694a46fc64b8fae5a6",
+          "size": 1477
+        },
+        {
+          "path": "README.md",
+          "local": "README.md",
+          "sha256": "5c8bdee0a8cc3c636d20f3bd8bb4ece32059468ee5d982a74ad0a834758f8632",
+          "size": 1598
+        },
+        {
+          "path": "config.json",
+          "local": "config.json",
+          "sha256": "dae9bf3f606f20b85057d086e5b9743862bd55ba169421449a9c1ba81d87df58",
+          "size": 1034
+        },
+        {
+          "path": "diffusion_pytorch_model.safetensors",
+          "local": "diffusion_pytorch_model.safetensors",
+          "sha256": "9b0696ebf86ab5c87ce553d87f4b62a48dba1add4ee314b6f7ee98e778145f7f",
+          "size": 1445157124
+        }
+      ]
+    },
+    {
+      "repo": "mattmdjaga/segformer_b2_clothes",
+      "revision": "584abc1e1d260e23c0fc627c5217a09b2b461046",
+      "target": "segmentation/clothes",
+      "family": "shared",
+      "files": [
+        {
+          "path": "README.md",
+          "local": "README.md",
+          "sha256": "fca39e62db301b5113f14ef71679da395d8c638a069176483373c74048563856",
+          "size": 4391
+        },
+        {
+          "path": "config.json",
+          "local": "config.json",
+          "sha256": "4b5127ca00fe61187b6cc6c232c9e19326ed228683f8f5c221790be9cc196a6e",
+          "size": 1727
+        },
+        {
+          "path": "model.safetensors",
+          "local": "model.safetensors",
+          "sha256": "8f86fd90c567afd4370b3cc3a7e81ed767a632b2832a738331af660acc0c4c68",
+          "size": 109493236
+        },
+        {
+          "path": "preprocessor_config.json",
+          "local": "preprocessor_config.json",
+          "sha256": "a608e3a47dcfba8dc052a766babb4b6c963285ab4f176bc6c1eb2b257fd3ad93",
+          "size": 271
+        }
+      ]
+    },
+    {
+      "repo": "deepghs/anime_face_detection",
+      "revision": "784dc4c0bb692351ddcdbe6131a050b17d3025d5",
+      "target": "protection/anime-face",
+      "family": "shared",
+      "files": [
+        {
+          "path": "face_detect_v0_n/model.onnx",
+          "local": "model.onnx",
+          "sha256": "60d40c22cd57a2d129ff913227e7abcb8db9a3b98ebb8ec4fa93a72bee0dcfab",
+          "size": 12102558
+        },
+        {
+          "path": "README.md",
+          "local": "README.md",
+          "sha256": "fa5222b282bc7d07257cfda577b2d5b021369c1146f6f55ca7b050616f57f9ea",
+          "size": 4065
+        }
+      ]
+    }
+  ]
+}

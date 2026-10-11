@@ -1,60 +1,100 @@
-# Release files / 最新安装包
+# AI Image Editing Tools — Offline AI QR and cross-platform updates / 本地 AI 二维码与跨平台更新
 
-Repository / 仓库：`AI-Image-Toolbox`。Application / 应用：`AI Image Editing Tools`。
+2026-10-12 · Windows EXE / Android APK
 
-Prepared / 整理日期：2026-10-10。Only the current release packages are included / 仅保留最新版安装包。
+## English
 
-| File / 文件 | Bytes / 字节 | SHA-256 |
+This update adds local AI QR fusion and improves import, placement, prompts, model management and export on Windows and Android. Existing dual-image PNGs, background reveal, scrambling, file packaging, GIFs, metadata cleanup, redaction, parameter reading and ordinary QR tools remain available without an account.
+
+### Local AI QR fusion
+
+- DreamShaper 8 (SD 1.5) with QR Monster SD 1.5 ControlNet is the default. One-click AI generation prepares missing resources automatically. SDXL Base 1.0 / QR Monster SDXL is labeled an experimental alternative. Compatible local models require matching model families; multiple setups can coexist.
+- Extract QR payloads from QQ, WeChat and other QR images or screenshots, then embed the QR into a separate source image. Avatars, names and screenshot UI are excluded; choose a code when several are detected.
+- Manual placement starts with the source image and an ordinary QR positioning preview. Adjust its size and position before generation; the preview then shows the actual fused result. Keep the full source canvas and add text after generation.
+- Automatic captioning is independent of placement and remains available during manual positioning; turn it off to edit prompts. Automatic skin/hair avoidance and manual placement cannot both be checked, but both can be off to use the manual position. If manual generation fails scan checks, the result dialog offers an automatic-avoidance retry.
+- Automatic prompts describe source style and local garment, building or foliage materials while retaining source colors. Prompt templates and generation parameters are saved per model family and model file.
+- Improve locator/background integration. Supported Windows CUDA paths attempt point-based locators and texture refinement. Android uses actual native diffusion guided by circular centers and surrounding points, retaining source texture without square white or blurred backing plates. AI results are accepted only after full-size and reduced-size scan validation.
+
+### Automatic setup and model management
+
+- Download and verify resources in the background on both platforms. Show verified file count / total, aggregate byte progress, current file sizes and live transfer speed. Other tools remain usable; Ready requires every mandatory resource to pass verification.
+- Choose automatic, official or mainland-China mirror sources. Automatic selection combines network probes and regional settings with fallback sources; throughput depends on connectivity and server load.
+- Find, verify and reuse existing models, repair missing or damaged resources and resume interrupted downloads. Display actual storage locations, with folder opening on Windows and an in-app file listing on Android.
+- New automatic Windows storage checks D, E, F and subsequent data drives for space and creates `AI-Models` for models and private inference environments. It does not fall back to C automatically; manual folder selection remains available. Android uses `AI-Models` in app storage and includes inference libraries in the APK.
+- Delete selected models or clean all managed AI resources after confirmation. Referenced external models and source images are preserved. Android's bundled runtime is removed by uninstalling the app.
+
+### Shared workflows and fixes
+
+- Fix empty-preview image selection. Windows accepts dropped images; Android uses its system picker. Add Clear preview and View top preview, with explicit guidance that the fused result appears at the top of the page.
+- Synchronize the independent prompt switch, placement-control visibility, model setup selection, saved parameters and bilingual tutorials.
+- Improve batch processing of arbitrary checked queue items, RGBA / HEX colors, GIF playback and looping, generation-parameter reading and Copy all, plus persistent numbering, size and GIF defaults.
+- Retain the full canvas and source aspect ratio, avoid overwriting existing output names and allow text after generation. Both READMEs and the guides bundled in EXE / APK are synchronized.
+
+### Installation and requirements
+
+- **Windows:** download the EXE; .NET Framework 4.8 is required. Ordinary tools need no AI models. First AI use needs connectivity for the private environment and models, without a separate Python, ComfyUI or WebUI installation. Prepared inference works offline on supported NVIDIA CUDA or CPU; CPU inference is slower.
+- **Android:** ordinary tools target Android 5 and later. Offline AI requires a 64-bit system on Android 7 or later. Native CPU diffusion and ONNX Runtime are bundled; once models are prepared, captioning and generation work offline without a computer. Generation requires at least 3 GiB of available system memory for SD 1.5 or 9 GiB for SDXL, with explicit insufficient-memory errors.
+- Networking is required for model downloads. Images and prompts are not uploaded. Models and inference dependencies require additional disk space beyond the EXE / APK sizes.
+
+### Validation and limitations
+
+Windows passed core and bilingual UI regression across 11 pages. Android passed core, UI, model-management and formal-package installation checks on an API 35 x86_64 emulator. Actual QQ and WeChat screenshots passed payload extraction and re-encoding checks.
+
+A complete offline Android run used real captioning/segmentation models, DreamShaper 8 and QR Monster to fuse a manually placed QR into one complex image. It retained the full 1920×1280 canvas. After local tonal correction, two independent decoders confirmed the payload at full size and 900×600; generation took about 12 minutes 50 seconds.
+
+Locator points can remain visible and naturalness does not yet match every reference. Windows CUDA and Android CPU differ in output and speed. SDXL is experimental; physical ARM64 performance and compressed QQ / WeChat transfers are not comprehensively verified. Compatibility is not guaranteed for every model, selected region or phone released since 2024. See [Validation](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/VALIDATION.en.md) and [Platform comparison](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/PLATFORM_PARITY.en.md).
+
+## 简体中文
+
+本次更新加入本地 AI 二维码融合，并同步完善 Windows 与 Android 的导入、定位、提示词、模型管理和导出操作。保留双图切换、背景显图、图片混淆、文件伪装、GIF、清信息、打码、参数读取及普通二维码工具，无需账号。
+
+### 本地 AI 二维码融合
+
+- 默认方案为 DreamShaper 8（SD 1.5）与 QR Monster SD 1.5 ControlNet，点击“一键 AI 生成”自动准备缺失资源。SDXL Base 1.0 / QR Monster SDXL 标注为实验备用；支持同家族的兼容本地模型，多种方案可同时保留。
+- 可从 QQ、微信及其他二维码图片或截图提取二维码内容，再单独融合进底图。截图中的头像、昵称与界面不会一并贴入底图；识别到多个码时可选择。
+- 手动放置时，预览先显示底图与普通二维码定位示意，可调大小和位置；生成后改为显示真实融合结果。保留完整原图画布，生成后可继续添加文字。
+- “自动识别画面并生成提示词”独立于位置选项，手动放置也能自动生成提示词，关闭后可自行编辑。“自动避开皮肤与头发放置”与“手动放置”最多选择一个，也可以都关闭并按手动位置生成。手动生成扫码失败后，结果框提供“帮我选择自动避让”重试。
+- 自动提示词按画面风格和选区材质描述织物、建筑或植物，配色沿用原图。提示词模板与生成参数按模型家族、模型文件保存，换模型后可单独调整。
+- 优化定位信息与背景的融合。Windows 支持在适用的 CUDA 路径尝试点状定位与纹理修整；Android 使用真实原生扩散，以圆形中心和周围小点引导，保留原图纹理，不添加方形白色或模糊底板。只有通过完整图及缩图扫码校验的结果才作为 AI 成品。
+
+### 自动准备与模型管理
+
+- 两端后台下载与校验，显示已校验文件数 / 总数、总体字节进度、当前文件大小和实时速度。准备过程中可使用其他工具；全部必需文件通过校验后才显示就绪。
+- 下载源可选自动、官方或中国大陆镜像。自动模式结合网络探测及系统地区选择可达来源，失败时尝试备用；实际速度取决于网络和源负载。
+- 检测、校验并复用已有模型，缺失或损坏资源按需补齐，支持断点续传。显示真实存放位置；Windows 可打开所在文件夹，Android 可查看应用内的实际文件清单。
+- Windows 新的自动存储位置按 D、E、F 等数据盘顺序检查空间，创建 `AI-Models`，模型与私有生图环境放在一起；不自动回落到 C 盘，仍可手动选目录。Android 使用应用存储中的 `AI-Models`，生图运行库随 APK 安装。
+- 可删除选中模型或清理全部受管 AI 资源，操作前确认。引用的外部模型与原图不删除；Android 内置运行库通过卸载应用移除。
+
+### 两端操作与修复
+
+- 修复空预览点击选图，Windows 支持拖入图片，Android 通过系统选择器导入；加入“清空预览”和“查看顶部预览”，明确融合成品显示在页面最上方。
+- 同步独立提示词开关、定位控件的显示逻辑、模型方案选择、参数保存及双语教程，避免位置选项隐藏提示词入口。
+- 完善任意勾选队列的批量处理、RGBA / HEX 颜色、GIF 播放与循环、生成参数读取与全部复制，以及编号、尺寸和 GIF 默认值保存。
+- 保留完整画布与源比例，输出文件避免重名覆盖；图片生成后可添加文字。中英文 README 与 EXE / APK 内的教程内容同步。
+
+### 安装与运行
+
+- **Windows：**下载 EXE，系统需有 .NET Framework 4.8。普通工具不需要 AI 模型；首次 AI 生成需要联网准备私有环境和模型，无需另装 Python、ComfyUI 或 WebUI。准备后可离线推理，支持适用的 NVIDIA CUDA 或 CPU，CPU 较慢。
+- **Android：**普通工具最低 Android 5；手机离线 AI 需要 Android 7 或更高版本的 64 位系统。APK 内置原生 CPU 扩散与 ONNX Runtime，模型下载完成后无需电脑即可离线识图、生图。SD 1.5 生成前至少需要 3 GiB 可用系统内存，SDXL 至少 9 GiB；不足时会明确提示。
+- 模型下载需要联网权限，图片和提示词不上传。模型及推理依赖需要额外磁盘空间，不包含在 EXE / APK 的安装包体积中。
+
+### 验证与已知限制
+
+Windows 完成 11 个页面的双语界面与核心功能回归；Android 完成 API 35 x86_64 模拟器中的核心、界面、模型管理及正式 APK 安装检查。真实 QQ、微信截图均完成提取与重新编码核对。
+
+Android 在断网状态下使用真实识图模型、DreamShaper 8 和 QR Monster 完成一张复杂图的手动融合，保留完整 1920×1280 画布；经局部亮度校准后，两种独立解码器在完整图与 900×600 缩图上核对内容通过，耗时约 12 分 50 秒。
+
+定位点仍可能可见，融合自然度尚未达到所有参考案例。Windows CUDA 与 Android CPU 的效果和速度存在差异；SDXL 为实验备用，ARM64 真机性能及 QQ / 微信压缩传输尚未全面验证。不能保证任意模型、任意选区或所有 2024 年以后上市的手机均可用。详见 [验证范围](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/VALIDATION.md) 与 [两端功能对照](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/PLATFORM_PARITY.md)。
+
+## Downloads and integrity / 下载与完整性
+
+Download the two packages from this release's Assets. / 请从本次发布的 Assets 下载两个安装包。
+
+| Package / 安装包 | Size / 大小 | SHA-256 |
 | --- | ---: | --- |
-| [AI-Image-Editing-Tools.exe](../releases/Windows/AI-Image-Editing-Tools.exe) | 1832960 | `d69b7e96a4b3ed5a0de4e598f71373d2a595ba40f69922ec00f778fd2345c9bb` |
-| [AI-Image-Editing-Tools.apk](../releases/Android/AI-Image-Editing-Tools.apk) | 803348 | `a1f97ed89c0509a4c348a1250de2105cb24b3c68668dbcc156ca07d45c583f16` |
+| `AI-Image-Editing-Tools.exe` | 2,271,232 bytes (2.17 MiB) | `8f11a287c07d57b668543d106dc1716c34a21d6d542868b10c2f66e41a5b818b` |
+| `AI-Image-Editing-Tools.apk` | 48,436,566 bytes (46.19 MiB) | `f85a352b4d70186ac1da07cf483dccac3c42dcb0021958729bbf1e29fa3cd865` |
 
-## Included update / 本次更新
+APK signer certificate SHA-256 / APK 签名证书 SHA-256：`4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508`
 
-- 相机兼容更新：Windows 使用 Media Foundation 异步采集及设备尺寸协商，增加设备选择、重连、隐私设置和分类错误提示；Android 处理前后摄像头、支持尺寸、NV21/YV12 行布局、方向、对焦及退出释放。
-- Camera updates: Windows uses asynchronous Media Foundation capture with advertised-size negotiation, camera selection, reconnect, privacy settings and categorized errors. Android handles front/rear selection, supported sizes, NV21/YV12 rows, orientation, focus and cleanup.
-- 原色优化新增自定义有效强度及恢复自动，仅在该方式下显示；手动值受实际色域限制，过高可能增加透色。自动封面按整图色彩增加独立柔和编织花纹，避免把花纹叠进黑底原图。
-- Source colors adds custom effective strength and Restore automatic, visible only for that method. Manual values remain gamut-limited and higher values may leak more color. Automatic covers adapt independent soft woven ribbons to whole-image chroma without painting them into the black view.
-- 二维码优化改用 250 灰度浅色背景校准整图和码区，减少常见浅灰聊天背景中的码块残影；黑底仍能扫描。平台转码或任意背景下的零残影不能保证。
-- QR optimization calibrates the whole image and code area to near-white level 250, reducing remnants on pale chat backgrounds while retaining black-view decoding. Zero interference after transcoding or on arbitrary backgrounds is not guaranteed.
-
-- 合并原色说明与有效强度，按实际文字和窗口宽度收紧留白；参数刷新保持高度与滚动位置稳定。Windows 数值框恢复普通滚轮直接调节，无需辅助键，覆盖输入区和箭头区；数值上下限与设定步长保持有效，不同时带动页面。同一行控件垂直居中。
-- Source-color guidance and measured strength share one compact, width-aware explanation with stable height/scroll position during refresh. Windows numeric inputs now directly adjust with an ordinary wheel over either the edit or arrow area, without modifier keys. Bounds and configured increments apply, with no simultaneous page scrolling. Row controls are vertically centered.
-- 文字图层实时显示当前内容，长文本缩略；合并连续拖动与预览任务，释放后保存最终位置，避免预览闪空与反复重建文字控件。
-- Text-layer names follow current content and shorten long text. Drag/preview updates are coalesced, with final placement committed on release, avoiding empty intermediate previews and repeated text-control rebuilding.
-- 原色优化逐处限制色差，提高区域采样和色彩预算，减少整图被过度降色；当前有效强度从实际输出计算。更多色彩可能增加封面透色，仍不能保证任意查看器零残影。
-- Source-color optimization limits chroma locally with finer regional sampling and a larger chroma budget, reducing excessive whole-image desaturation. Effective strength is measured from actual output. More color can increase cover leakage; zero interference across viewers is not guaranteed.
-
-- 二维码制作支持网址粘贴和换行显示，导出自动建立“二维码制作”子文件夹。保留直接生成、图片叠加、自由拖动与定位，以及 0–12 格白边调节；推荐至少 4 格。程序不上传图片，不提供远程托管。
-- QR generation adds URL paste/wrapping and automatically exports into a feature subfolder. QR-only/image-overlay output, dragging/positioning and 0–12 module borders remain; at least 4 modules is recommended. The app neither uploads images nor provides remote hosting.
-- 两端支持导入图片扫描及相机扫码，结果可复制，HTTP/HTTPS 地址可手动打开浏览器。Android 增加可选 CAMERA 权限，只在扫码时请求；Windows 使用系统 Media Foundation 采集，不支持的相机可改用导入扫描。打开网站后的登录、显示和下载由网站决定。
-- Both clients support image-import and camera scanning, copying results and explicit HTTP/HTTPS browser launch. Android adds optional CAMERA permission on demand. Windows uses system Media Foundation capture, with image import as a fallback. Website login/display/download behavior remains controlled by the website.
-- 图片叠加、双图切换及文件伪装支持最多 32 条独立文字，单独拖动、定位、调色及删除。二维码始终盖在文字上；直接生成只输出二维码。
-- Image overlays, Double image and File disguise support up to 32 independently draggable, positioned, colored and removable text layers. QR pixels stay above text; QR-only mode outputs the code alone.
-- 背景显图恢复“原色优化”默认项，移除原“封面防透”选项，替换为可选“二维码优化”：使用灰度封面，白底保留封面，黑底增强码区对比。需使用本工具生成并保留参数的二维码 PNG；普通方式不强制叠加可见二维码。尺寸不足或缺少参数明确报错，导出前自检。
-- Background reveal restores Source colors as the default and replaces the prior cover-isolation choice with optional QR optimization: grayscale cover on white, stronger QR contrast on black. It requires app-generated QR PNGs with intact metadata. Ordinary methods no longer force a visible QR overlay. Missing metadata and inadequate resolution are reported; export self-checks the code.
-- 两端导入扫描自动尝试白底、黑底，Windows 修复扫描前白底合成导致透明数据丢失的问题，无需手动制作黑底图片。平台缩小、转码或合成白底仍可能破坏效果，无法从扫描中找回已删除的信息。
-- Both clients automatically scan imported images against white and black. Windows no longer loses alpha by flattening to white before scanning. No manual black-view conversion is needed. Platform resizing, re-encoding or white flattening can still break the effect; scanning cannot recover removed information.
-- 打码增加重做，最多 50 个历史状态、256 MiB 本地无损 PNG 缓存预算；较大图片可能减少保留次数，新编辑清空重做。修复解码位图文件生命周期和编辑像素格式问题。
-- Redaction adds redo and up to 50 history states under a 256 MiB local lossless-PNG cache budget. Large images can reduce retained steps; new edits clear redo. Decoded bitmap lifetime and editable pixel-format issues are fixed.
-- 左侧工具区/手机菜单滚动适配；Windows 页面子控件缓冲绘制、显示新页面后再隐藏旧页、合并与缓存预览，减轻闪烁。Android 沿用系统界面硬件加速。图像计算仍使用 CPU，本次未新增 GPU 图像运算后端，未宣称所有设备性能一致。
-- Navigation scrolling is adaptive. Windows buffers child painting, reveals the destination before hiding the prior page, and coalesces/caches previews to reduce flicker. Android keeps system UI hardware acceleration. Image calculations still use the CPU; no GPU image-compute backend is added and universal performance is not claimed.
-
-## Verification / 验证
-
-- Windows 核心、设置、批量及完整中英文界面检查通过，包含自定义强度、恢复自动、模式隐藏、滚轮调节和刷新布局稳定。更换封面对照在 0/25/75/100 强度下黑底变化不超过 1 色阶；这不保证第三方查看器表现一致。
-- Windows core/settings/batch and complete bilingual UI checks pass, including manual strength, restore, mode visibility, numeric wheels and stable refresh layouts. Cover swaps at 0/25/75/100 change the black view by at most one level per channel; this does not guarantee identical third-party rendering.
-- ASUS FHD webcam 实机开启两次，各取得 4 帧 640×480，关闭释放后可重开；未保存画面。其他型号及红外相机未实测。
-- The ASUS FHD webcam opens twice and delivers four 640×480 frames per cycle, reopening after cleanup. No camera images are saved. Other models and infrared cameras are untested.
-- 二维码 768 组像素检查通过：245/255 背景码块残差不超过 3 色阶，250 不超过 1；纯白校准变化不超过 6。导出透明 PNG 黑底解码通过。Android 同款主机解码库检查 20 组 PNG/背景组合，含 6 组浅色封面不解码；320 组原色 C#/JVM 像素向量一致。
-- All 768 QR pixel cases pass: ink/paper remnants differ by at most three levels on backgrounds 245/255 and one on 250; pure-white calibration differences stay within six. Saved transparent PNGs decode on black. The host Android-core decoder checks 20 PNG/background combinations, including six hidden pale covers; all 320 source-color C#/JVM vectors match.
-- Android 相机亮度行、截断数据拒绝和尺寸排序的主机检查通过。测试源码及正式 APK 编译通过，原证书 v1/v2/v3 签名通过。Android 真机位图/触摸/相机权限、iOS 与 QQ/Bilibili 传输往返未执行，主机检查不等同手机实测。
-- Host Android camera-luminance, truncation-rejection and size-ranking checks pass. Test/release sources compile and original-certificate v1/v2/v3 signatures verify. Android device bitmap/touch/camera permissions, iOS and QQ/Bilibili round trips remain untested; host checks are not device tests.
-
-Application name, icon and Android package remain unchanged. No Internet permission was added. Signing secrets and temporary outputs stay outside the public repository / 应用名、图标及 Android 包名不变，未增加联网权限，密钥及临时产物不进入公开目录。
-
-Signer certificate SHA-256 / 签名证书：`4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508`。
-
-Original code remains [MIT](../LICENSE); bundled ZXing/ZXing.Net use Apache-2.0. Preserve [third-party notices](../THIRD_PARTY_NOTICES.md) and [dependency licenses](../vendor/zxing/LICENSE.md) / 原创 MIT 与第三方许可须保留。
-
-[Validation / 验证](VALIDATION.md) | [Validation in English](VALIDATION.en.md)
+Author / 作者：Guangying Ruoshui / 光影若水 · [MIT License](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/LICENSE). Third-party code and models retain their own licenses; see [Third-party notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/THIRD_PARTY_NOTICES.md) and [Android native notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/android/native/THIRD_PARTY_NOTICES.md).

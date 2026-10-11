@@ -20,7 +20,7 @@ final class BackgroundRevealTests {
             }finally{result.image.recycle();if(loaded!=null)loaded.recycle();if(black!=null)black.recycle();if(white!=null)white.recycle();}
             BackgroundRevealAuto.Result gray=BackgroundRevealAuto.compose(null,source,false,85,job,1,true);try{require(!gray.profile.sourceColor&&!gray.profile.theme,"gray entered color pipeline");for(int y=0;y<120;y++)for(int x=0;x<180;x++){int q=gray.image.getPixel(x,y);require(Color.red(q)==Color.green(q)&&Color.green(q)==Color.blue(q),"gray chroma");}}finally{gray.image.recycle();}
             Bitmap flat=Bitmap.createBitmap(72,48,Bitmap.Config.ARGB_8888),ramp=Bitmap.createBitmap(72,48,Bitmap.Config.ARGB_8888);flat.eraseColor(Color.GRAY);for(int y=0;y<48;y++)for(int x=0;x<72;x++){int v=x*255/71;ramp.setPixel(x,y,Color.rgb(v,v,v));}
-            try{BackgroundRevealAuto.Result low=BackgroundRevealAuto.compose(null,flat,true,85,job,0,true),high=BackgroundRevealAuto.compose(null,ramp,true,85,job,0,true);try{require(high.profile.chromaLimit<low.profile.chromaLimit,"budget did not adapt to contrast");require(low.profile.chromaLimit<=20&&high.profile.chromaLimit>=10,"invalid budget");}finally{low.image.recycle();high.image.recycle();}}finally{flat.recycle();ramp.recycle();}
+            try{BackgroundRevealAuto.Result low=BackgroundRevealAuto.compose(null,flat,true,85,job,0,true),high=BackgroundRevealAuto.compose(null,ramp,true,85,job,0,true);try{require(high.profile.chromaLimit<low.profile.chromaLimit,"budget did not adapt to contrast");require(low.profile.chromaLimit>=16&&low.profile.chromaLimit<=48&&high.profile.chromaLimit>=16&&high.profile.chromaLimit<=48,"invalid budget: flat="+low.profile.chromaLimit+", ramp="+high.profile.chromaLimit);android.util.Log.i("AIPT-TEST","Source-color chroma budgets: flat="+low.profile.chromaLimit+", ramp="+high.profile.chromaLimit);}finally{low.image.recycle();high.image.recycle();}}finally{flat.recycle();ramp.recycle();}
         }finally{source.recycle();}
     }
 
@@ -58,15 +58,18 @@ final class BackgroundRevealTests {
             for(int shift:new int[]{16,8,0}){double target=.5*(l+(((dark>>>shift)&255)-l)*strength/100.0),actual=((v>>>shift)&255)*(v>>>24)/255.0,otherActual=((v2>>>shift)&255)*(v2>>>24)/255.0;require(Math.abs(actual-target)<=.501,"priority black target");require(Math.abs(actual-otherActual)<=1.001,"priority cover dependence");}
         }
         Bitmap automatic=BackgroundReveal.automaticCover(80,120);try{require(automatic.getWidth()==80&&automatic.getHeight()==120,"automatic cover dimensions");}finally{automatic.recycle();}
-        Bitmap w=Bitmap.createBitmap(32,24,Bitmap.Config.ARGB_8888),b=Bitmap.createBitmap(32,24,Bitmap.Config.ARGB_8888);w.eraseColor(Color.YELLOW);b.eraseColor(Color.BLUE);
-        try{for(boolean color:new boolean[]{false,true}){
-            Bitmap result=BackgroundReveal.compose(w,b,color,70,job);File png=new File(dir,color?"background-color.png":"background-gray.png");
+        Bitmap w=Bitmap.createBitmap(32,24,Bitmap.Config.ARGB_8888),b=Bitmap.createBitmap(32,24,Bitmap.Config.ARGB_8888);b.eraseColor(Color.BLUE);
+        StringBuilder fixtureReport=new StringBuilder("Targets: W=127.5+0.5*(luma(light)+(light-luma(light))*s), B=0.5*(luma(dark)+(dark-luma(dark))*s), s=color?0.7:0.\nComplementary yellow/blue targets can yield a neutral joint optimum.\n");
+        try{for(int coverColor:new int[]{Color.YELLOW,Color.WHITE})for(boolean color:new boolean[]{false,true}){
+            w.eraseColor(coverColor);
+            Bitmap result=BackgroundReveal.compose(w,b,color,70,job);String coverName=coverColor==Color.YELLOW?"yellow":"white";File png=new File(dir,"background-"+coverName+(color?"-color.png":"-gray.png"));
             try{BackgroundReveal.encode(result,png,color,70,job);require(DualBlend.isLegacy(png)&&DualBlend.background(png)==0,"profile recognition");Bitmap loaded=Images.load(png,0,true),view=DualBlend.render(loaded,false,job);
-                try{int p=view.getPixel(10,10);require(color?(Color.red(p)!=Color.blue(p)):(Color.red(p)==Color.green(p)&&Color.green(p)==Color.blue(p)),"color mode");}
+                try{int p=view.getPixel(10,10),encoded=result.getPixel(10,10),decoded=loaded.getPixel(10,10);require(Color.alpha(decoded)>0&&Color.alpha(decoded)<255,"transparent roundtrip alpha");for(int shift:new int[]{16,8,0})require(Math.abs(((p>>>shift)&255)-BackgroundReveal.flatten(encoded,shift,0))<=1,"PNG black appearance changed");require(Color.alpha(encoded)==Color.alpha(decoded),"PNG alpha changed");if(!color)require(Color.red(p)==Color.green(p)&&Color.green(p)==Color.blue(p),"gray mode");else if(coverColor==Color.WHITE)require(Color.red(p)!=Color.blue(p),"white cover fails to retain blue source chroma");fixtureReport.append(coverName).append(" color=").append(color).append(" raw=").append(Integer.toHexString(encoded)).append(" decoded=").append(Integer.toHexString(decoded)).append(" black=").append(Integer.toHexString(p)).append(" whiteRGB=").append(BackgroundReveal.flatten(decoded,16,255)).append(',').append(BackgroundReveal.flatten(decoded,8,255)).append(',').append(BackgroundReveal.flatten(decoded,0,255)).append('\n');}
                 finally{loaded.recycle();view.recycle();}
                 require(DualBlend.restore(png,dir,0,job).size()==2,"extraction");
             }finally{result.recycle();}
         }
+        try(OutputStream out=new FileOutputStream(new File(dir,"background-fixtures.txt"))){out.write(fixtureReport.toString().getBytes(Files.UTF8));}
         Files.Job cancel=new Files.Job();cancel.cancelled=true;boolean stopped=false;try{BackgroundReveal.compose(w,b,true,70,cancel);}catch(InterruptedIOException ex){stopped=true;}require(stopped,"cancellation");
         }finally{w.recycle();b.recycle();}
     }

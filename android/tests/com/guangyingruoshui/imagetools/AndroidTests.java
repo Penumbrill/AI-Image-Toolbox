@@ -11,6 +11,8 @@ final class AndroidTests {
     static void require(boolean condition,String message)throws Exception{if(!condition)throw new IOException("TEST FAILED: "+message);}
     static void run(Context c,File unused,Files.Job j)throws Exception{File external=c.getExternalFilesDir(null);File dir=new File(external==null?c.getFilesDir():external,"verification");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Cannot create test directory");File report=new File(dir,"report.txt");StringBuilder log=new StringBuilder();Bitmap real=null,cover=null;try{
         CameraQrMathTests.run();log.append("PASS: camera padded/aligned luminance, truncated frame rejection, size ranking and near-white QR contrast\n");
+        QrDecodeTests.run();log.append("PASS: bounded multi-scale QR decoding, exact and distinct URLs, invalid websites, blank image and cancellation\n");
+        QrScreenshotTests.run();log.append("PASS: exact raw QR/vCard content, legacy website mode, multiple screenshot QR regions and cancellation\n");
         BackgroundRevealTests.run(dir,j);log.append("PASS: grayscale precision, color output, transparent PNG profile, extraction and cancellation\n");
         DualBlendTests.run(dir,j);log.append("PASS: legacy transparent dual recognition, old appearance extraction, collisions, CRC rejection and cancellation\n");
         real=Bitmap.createBitmap(37,29,Bitmap.Config.ARGB_8888);int[] pixels=new int[37*29];for(int k=0;k<pixels.length;k++)pixels[k]=0xff000000|((k*76379)^0x43547a)&0xffffff;real.setPixels(pixels,0,37,0,0,37,29);cover=Images.defaultCover(37);File original=new File(dir,"原图.png");Images.encode(real,original,0,j);String originalHash=Files.hash(original,j);

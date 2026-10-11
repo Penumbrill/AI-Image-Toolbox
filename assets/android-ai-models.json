@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "engine": "stable-diffusion.cpp",
+  "packages": [
+    {
+      "repo": "Lykon/DreamShaper",
+      "target": "base/dreamshaper-8",
+      "revision": "228d79cb20811466f5c5710aa91f05dabd0b8a14",
+      "family": "sd15",
+      "files": [
+        {
+          "path": "DreamShaper_8_pruned.safetensors",
+          "local": "DreamShaper_8_pruned.safetensors",
+          "size": 2132625894,
+          "sha256": "879db523c30d3b9017143d56705015e15a2cb5628762c11d086fed9538abd7fd"
+        }
+      ]
+    },
+    {
+      "repo": "monster-labs/control_v1p_sd15_qrcode_monster",
+      "target": "controlnet/qr-monster-sd15",
+      "revision": "560fb7b15d0badb409f8cd578a2bfe63bd4b8046",
+      "family": "sd15",
+      "files": [
+        {
+          "path": "control_v1p_sd15_qrcode_monster.safetensors",
+          "local": "control_v1p_sd15_qrcode_monster.safetensors",
+          "size": 722596344,
+          "sha256": "c7f43f70e266153d12f5e1bb1c9e7be3f4513cf0eef0432661b1331bfe11cadf"
+        }
+      ]
+    },
+    {
+      "repo": "ningpp/blip-image-captioning-base-ONNX",
+      "target": "caption/blip-base",
+      "revision": "3bc5068f59dad3619e29e5283a41632b101ab8ae",
+      "family": "shared",
+      "files": [
+        {
+          "path": "blip_vision_encoder.onnx",
+          "local": "blip_vision_encoder.onnx",
+          "size": 344590705,
+          "sha256": "c24d82668c01c1d51e0a113efe0d49661d383ebabbf3295f2d2d5e988aefe8d8"
+        },
+        {
+          "path": "blip_text_decoder.onnx",
+          "local": "blip_text_decoder.onnx",
+          "size": 645815945,
+          "sha256": "b83504573c51a41b9ae70adfb56cc82f2658d8b2da2a47c3d0cb71d255aac92e"
+        },
+        {
+          "path": "vocab.txt",
+          "local": "vocab.txt",
+          "size": 231508,
+          "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+        },
+        {
+          "path": "config.json",
+          "local": "config.json",
+          "size": 4563,
+          "sha256": "f7846f82f4e2c4a2ccbab9ae8b0e44873540a271a76a1288effd078180c13a82"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "local": "preprocessor_config.json",
+          "size": 287,
+          "sha256": "065c10ec97edc5081fbd9655b3d9d25e2647ea6d5dab873325e88eed12d80a7d"
+        }
+      ]
+    },
+    {
+      "repo": "Xenova/segformer_b2_clothes",
+      "target": "segmentation/clothes",
+      "revision": "cb6ac44e641faa309f29561c1afe08d87ef52631",
+      "family": "shared",
+      "files": [
+        {
+          "path": "onnx/model.onnx",
+          "local": "model.onnx",
+          "size": 110039291,
+          "sha256": "12aee5578c95cd43706062d9a37e7359b320c147c92c437681c730a580716ef4"
+        },
+        {
+          "path": "config.json",
+          "local": "config.json",
+          "size": 1722,
+          "sha256": "afe72a34cd87509e2118f4c2ba99afc1c9ba807f852d77676b5437c11bfccdec"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "local": "preprocessor_config.json",
+          "size": 374,
+          "sha256": "e5a25d8fc054bf780be930e161b47d188bec1b0bf0a44fd5fdfb3f3312c0be0b"
+        }
+      ]
+    },
+    {
+      "repo": "deepghs/anime_face_detection",
+      "revision": "784dc4c0bb692351ddcdbe6131a050b17d3025d5",
+      "target": "protection/anime-face",
+      "family": "shared",
+      "files": [
+        {
+          "path": "face_detect_v0_n/model.onnx",
+          "local": "model.onnx",
+          "sha256": "60d40c22cd57a2d129ff913227e7abcb8db9a3b98ebb8ec4fa93a72bee0dcfab",
+          "size": 12102558
+        },
+        {
+          "path": "README.md",
+          "local": "README.md",
+          "sha256": "fa5222b282bc7d07257cfda577b2d5b021369c1146f6f55ca7b050616f57f9ea",
+          "size": 4065
+        }
+      ]
+    },
+    {
+      "repo": "stabilityai/stable-diffusion-xl-base-1.0",
+      "target": "base/sdxl-base",
+      "revision": "462165984030d82259a11f4367a4eed129e94a7b",
+      "family": "sdxl",
+      "experimental": true,
+      "files": [
+        {
+          "path": "sd_xl_base_1.0.safetensors",
+          "local": "sd_xl_base_1.0.safetensors",
+          "size": 6938078334,
+          "sha256": "31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b"
+        }
+      ]
+    },
+    {
+      "repo": "monster-labs/control_v1p_sdxl_qrcode_monster",
+      "target": "controlnet/qr-monster-sdxl",
+      "revision": "1ec5dea263b28ba2925151ab5007dfbf9147ad75",
+      "family": "sdxl",
+      "experimental": true,
+      "files": [
+        {
+          "path": "diffusion_pytorch_model.safetensors",
+          "local": "diffusion_pytorch_model.safetensors",
+          "size": 5004167864,
+          "sha256": "11e49b4e272fabda60094b35be6fd3e215e551211210938e381d27497fd2215c"
+        }
+      ]
+    }
+  ]
+}

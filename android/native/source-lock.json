@@ -1,0 +1,21 @@
+{
+  "stable_diffusion": {
+    "url": "https://github.com/leejet/stable-diffusion.cpp",
+    "commit": "2988060a4338a5dcd94721c964a8e87003c1ac8b"
+  },
+  "ggml": {
+    "url": "https://github.com/leejet/ggml",
+    "commit": "d25b121ce1d6ae0c7e62ad080460d9fc1e46dd93"
+  },
+  "ndk": "30.0.16248370",
+  "minimum_android_api": 24,
+  "abis": ["arm64-v8a", "x86_64"],
+  "backend": "CPU",
+  "shared_library": "libaipt_diffusion.so",
+  "compatibility": {
+    "minimum_android_api": 21,
+    "abis": ["armeabi-v7a", "x86"],
+    "shared_library": "libaipt_compat.so",
+    "offline_ai": false
+  }
+}
