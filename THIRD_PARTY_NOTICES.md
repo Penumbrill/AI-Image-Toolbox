@@ -39,6 +39,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 QR encoding and decoding use ZXing.Net 0.16.11 (Windows) and ZXing core 3.5.4 (Android). Copyright ZXing authors and ZXing.Net authors. Distributed under Apache-2.0; see [vendored dependency details](vendor/zxing/README.md) and [full license](vendor/zxing/LICENSE.md). These dependencies are included in release packages and require no download at runtime.
 
+Windows local AI additionally installs [ZXing-C++ 2.3.0 Python bindings](https://github.com/zxing-cpp/zxing-cpp/tree/v2.3.0/wrappers/python) for independent exact-payload validation at original and thumbnail sizes. Copyright ZXing authors and ZXing-C++ contributors; Apache-2.0, using the full license below. It is downloaded with the private Python dependencies and is not included in the EXE or APK.
+
+Windows 本地 AI 另行安装上述 ZXing-C++ Python 绑定，在原图和缩图上独立核对完整二维码内容；许可证为 Apache-2.0，完整条款见下文。该依赖随私有 Python 环境按需安装，不包含在 EXE 或 APK 内。
+
+The Windows AI worker also contains adapted local threshold calculations from [ZXing Java HybridBinarizer](https://github.com/zxing/zxing/blob/zxing-3.5.4/core/src/main/java/com/google/zxing/common/HybridBinarizer.java) and [ZXing-C++ HybridBinarizer](https://github.com/zxing-cpp/zxing-cpp/blob/v2.3.0/core/src/HybridBinarizer.cpp), copyright the respective ZXing authors and contributors, under Apache-2.0. Changes include Python/NumPy projection, source-color compensation and combined original/thumbnail constraints for local VAE refinement. The full Apache-2.0 license below applies.
+
+Windows AI 工作脚本还包含改写自上述 ZXing Java 与 ZXing-C++ 算法的局部阈值计算，著作权归原作者及贡献者所有，许可证为 Apache-2.0。改动包括 Python/NumPy 实现、原图颜色补偿，以及合并原图和缩略图约束用于局部 VAE 修整；完整许可证见下文。
+
 二维码生成与识别使用上述本地依赖；完整许可证及版本、校验见链接。原创代码的 MIT 许可证保持不变。
 
 ## Apache-2.0 full license / 完整许可证
@@ -288,3 +296,37 @@ POSSIBILITY OF SUCH DAMAGES.
 You acknowledge that this software is not designed or intended for
 use in the design, construction, operation or maintenance of any
 nuclear facility.
+
+## Local AI face protection / 本地 AI 人脸保护
+
+Local inference uses [DeepGHS anime_face_detection](https://huggingface.co/deepghs/anime_face_detection), whose model card declares MIT. The downloaded `face_detect_v0_n/model.onnx` and model card are pinned to revision `784dc4c0bb692351ddcdbe6131a050b17d3025d5`; their SHA-256 values are recorded in [the model manifest](ai/models.json). The publisher's model card is retained alongside downloaded weights. Model weights are downloaded on demand and are not embedded in the EXE or APK.
+
+本地人脸保护使用上述 DeepGHS 模型；发布方模型卡声明 MIT，固定版本、文件校验及随模型保存的说明见上述记录。模型按需下载，不包含在 EXE 或 APK 内。模型许可独立于本工具代码许可。
+
+Inference uses ONNX Runtime 1.23.2, copyright Microsoft Corporation, under the [upstream MIT license](https://github.com/microsoft/onnxruntime/blob/v1.23.2/LICENSE). ONNX Runtime is installed into the private Windows AI environment and bundled in the Android APK for local AI recognition; the respective packages retain upstream notices. Android's native diffusion and recognition runtime notices, including the full ONNX Runtime license, are in [android/native/THIRD_PARTY_NOTICES.md](android/native/THIRD_PARTY_NOTICES.md). Ordinary pixel fusion requires no AI models.
+
+推理使用 ONNX Runtime 1.23.2，版权属于 Microsoft Corporation，采用上述 MIT 许可证。它安装在 Windows 私有 AI 环境中，并随 Android APK 提供本地 AI 识图；两种软件包保留相应上游声明。Android 原生扩散与识图运行库完整许可见 [android/native/THIRD_PARTY_NOTICES.md](android/native/THIRD_PARTY_NOTICES.md)。普通像素融合无需 AI 模型。
+
+### ONNX Runtime MIT License
+
+MIT License
+
+Copyright (c) Microsoft Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
