@@ -17,6 +17,7 @@ namespace QQImageSwitch
         readonly Label detail,previewSize;
         readonly SoftCombo scrambleMode,decodeMode;
         readonly NumericUpDown scrambleQuality,decodeQuality;
+        readonly Button batchDescramble;
         readonly System.Windows.Forms.Timer debounce;
         readonly SemaphoreSlim previewGate=new SemaphoreSlim(1,1);
         readonly SemaphoreSlim inputGate=new SemaphoreSlim(1,1);
@@ -68,7 +69,8 @@ namespace QQImageSwitch
             Ui.Add(options,Ui.Text("原图质量输出 PNG，附带原文件；点击「还原原文件」可恢复全部字节及信息。无损 PNG 只保留像素；JPG 有损，透明处填白，不支持原文件还原。",9));
             Ui.Add(options,Ui.Text("解混淆不会消除 JPG 已有的压缩损失。尺寸改变、截图或像素修改会影响还原。动图的像素混淆只处理首帧；原文件模式保留完整动图。",9));
             options.ResumeLayout(true);Ui.Add(Body,options);
-            Ui.Add(Body,Ui.Flow(Ui.Button("批量混淆",async delegate{await Export(0,true,true);},true),Ui.Button("混淆选中",async delegate{await Export(0,false,true);}),Ui.Button("批量解混淆",async delegate{await Export(1,true,true);}),Ui.Button("解混淆选中",async delegate{await Export(1,false,true);}))); 
+            batchDescramble=Ui.Button("批量解混淆",async delegate{await Export(1,true,true);});
+            Ui.Add(Body,Ui.Flow(Ui.Button("批量混淆",async delegate{await Export(0,true,true);},true),Ui.Button("混淆选中",async delegate{await Export(0,false,true);}),batchDescramble,Ui.Button("解混淆选中",async delegate{await Export(1,false,true);}))); 
             Ui.Add(Body,Ui.Flow(Ui.Button("批量还原原文件",async delegate{await Export(2,true,true);}),Ui.Button("还原选中原文件",async delegate{await Export(2,false,true);}))); 
             debounce=new System.Windows.Forms.Timer{Interval=500};debounce.Tick+=async delegate{debounce.Stop();await Preview();};
             EventHandler change=delegate(object sender,EventArgs e){if(sender==scrambleMode||sender==scrambleQuality)reversePreview=false;if(sender==decodeMode||sender==decodeQuality)reversePreview=true;scrambleQuality.Enabled=scrambleMode.SelectedIndex==2;decodeQuality.Enabled=decodeMode.SelectedIndex==1;if(files.Count>0)SchedulePreview();};
@@ -176,10 +178,11 @@ namespace QQImageSwitch
         }
         internal async Task Export(int operation,bool all,bool report)
         {
-            if(Busy)return;string[] inputs=(all?files:queue.SelectedIndices.Cast<int>().Select(i=>files[i])).ToArray();if(inputs.Length==0){Status.Text="请先导入图片。";return;}
-            if(!OutputFolder.Ready())return;CancelPreview();debounce.Stop();int quality=Quality(operation==1);string folder=OutputFolder.Destination;LastOutputs.Clear();
-            IProgress<int> progress=new Progress<int>(n=>{if(!disposed)Status.Text="正在处理 "+n+" / "+inputs.Length+"…";});
+            if(Busy)return;string[] inputs=(all?files:queue.SelectedIndices.Cast<int>().Select(i=>files[i])).ToArray();if(inputs.Length==0){Status.Text=files.Count==0?"请先导入图片。":"请先选中要处理的图片。";return;}
+            if(!OutputFolder.Ready()){Status.Text="请检查保存位置。";return;}CancelPreview();debounce.Stop();scrambleMode.CloseChoices();decodeMode.CloseChoices();if(operation<2)reversePreview=operation==1;int quality=Quality(operation==1);string folder=OutputFolder.Destination;LastOutputs.Clear();
+            IProgress<int> progress=new Progress<int>(n=>{if(!disposed&&Busy)Status.Text="正在处理 "+n+" / "+inputs.Length+"…";});
             await Run(token=>Task.Run(()=>{var errors=new List<string>();for(int i=0;i<inputs.Length;i++){token.ThrowIfCancellationRequested();try{string output=operation==2?Obfuscation.RestoreOriginal(inputs[i],folder,token):Obfuscation.Write(inputs[i],ImageTools.Unique(folder,inputs[i],operation==0?"_混淆":"_解混淆",quality>0?".jpg":".png"),operation==1,quality,token);LastOutputs.Add(output);}catch(OperationCanceledException){throw;}catch(Exception ex){errors.Add(Path.GetFileName(inputs[i])+"："+ex.Message);}progress.Report(i+1);}return "处理完成：成功 "+LastOutputs.Count+" 张，失败 "+errors.Count+" 张。\n保存位置："+folder+(errors.Count>0?"\n"+string.Join("\n",errors):"");},token),report);
+            if(operation<2&&LastOutputs.Count>0&&!disposed)await Preview();
         }
         public override void OnEnterPage(){base.OnEnterPage();previewActive=true;if(previewPending)SchedulePreview();}
         public override void OnLeavePage(){previewActive=false;debounce.Stop();if(previewCancel!=null){previewPending=true;previewSize.Text="选择队列中的图片后，可预览实际编码后的文件大小。";}CancelPreview();}
@@ -196,6 +199,24 @@ namespace QQImageSwitch
             if(wrapped.Length!=2||new FileInfo(wrapped[0]).Length!=LastPreviewBytes)throw new Exception("Original quality batch/size failed");
             files.Clear();files.AddRange(wrapped);RefreshQueue();await Export(2,true,false);
             if(LastOutputs.Count!=2||!File.ReadAllBytes(LastOutputs[0]).SequenceEqual(File.ReadAllBytes(a))||!File.ReadAllBytes(LastOutputs[1]).SequenceEqual(File.ReadAllBytes(b)))throw new Exception("Batch original-file restoration differs");
+            decodeMode.SelectedIndex=0;
+            Scroller.ScrollControlIntoView(decodeMode);await Task.Delay(60);decodeMode.TestOpen();
+            Scroller.ScrollControlIntoView(batchDescramble);await Task.Delay(60);
+            if(decodeMode.PopupVisible)throw new Exception("Choice popup remained visible after scrolling its owner");
+            Control hit=FindForm();Point center=batchDescramble.PointToScreen(new Point(batchDescramble.Width/2,batchDescramble.Height/2));
+            while(hit!=null){Control child=hit.GetChildAtPoint(hit.PointToClient(center),GetChildAtPointSkip.Invisible|GetChildAtPointSkip.Disabled);if(child==null)break;hit=child;}
+            if(hit!=batchDescramble)throw new Exception("Batch descramble hit area belongs to another control: "+(hit==null?"null":hit.GetType().Name));
+            using(var closeResults=new System.Windows.Forms.Timer{Interval=30})
+            {
+                closeResults.Tick+=delegate{foreach(Form dialog in Application.OpenForms.Cast<Form>().ToArray())if(dialog is ResultForm)dialog.Close();};closeResults.Start();
+                Scroller.ScrollControlIntoView(batchDescramble);await Task.Delay(60);batchDescramble.PerformClick();
+                for(int i=0;Busy&&i<200;i++)await Task.Delay(20);
+                closeResults.Stop();
+            }
+            if(Busy||LastOutputs.Count!=2||scrambleMode.PopupVisible||decodeMode.PopupVisible||!reversePreview)throw new Exception("Batch descramble button did not execute the inverse operation");
+            for(int i=0;i<2;i++)using(var original=Codec.Load(i==0?a:b))using(var decoded=Codec.Load(LastOutputs[i]))
+                for(int row=0;row<original.Height;row++)for(int col=0;col<original.Width;col++)if(original.GetPixel(col,row)!=decoded.GetPixel(col,row))throw new Exception("Batch button did not restore exact pixels");
+            if(!Status.Text.StartsWith("处理完成"))throw new Exception("Late batch progress overwrote completion status");
             decodeMode.SelectedIndex=1;decodeQuality.Value=53;reversePreview=true;await Preview();await Export(1,false,false);
             if(LastOutputs.Count!=1||!LastOutputs[0].EndsWith(".jpg")||LastPreviewBytes!=new FileInfo(LastOutputs[0]).Length)throw new Exception("Independent descramble quality/size failed");
             CancelPreview();debounce.Stop();

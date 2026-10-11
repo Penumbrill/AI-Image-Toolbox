@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -88,14 +88,14 @@ namespace QQImageSwitch
                         // Use the same message loop as the app so async export continuations stay on the UI thread.
                         f.Shown+=async delegate
                         {
-                            try{f.ChooseLanguage(false);f.CheckPairingBehavior();f.CheckNavigationBehavior();f.CheckTextBehavior();await f.CheckInspectionBehavior(args[1]+".export");await f.CheckEditorBehavior();await f.CheckFileBehavior(args[1]+".files");await f.CheckObfuscationBehavior(args[1]+".scramble");await f.CheckMergedRestore(args[1]+".merged");await f.CheckDualPage(args[1]+".dual");await f.CheckBackgroundBehavior(args[1]+".background");await f.CheckQrBehavior(args[1]+".qr");f.CheckButtonHints();f.CheckLanguageBehavior(args[1]+".language.txt");}
+                            try{f.ChooseLanguage(false);ToolsTests.CheckCanvasClicks(args[1]+".canvas-clicks");await f.CheckEmptyCoverClick(args[1]+".canvas-clicks");f.CheckPairingBehavior();f.CheckNavigationBehavior();f.CheckTextBehavior();await f.CheckInspectionBehavior(args[1]+".export");await f.CheckEditorBehavior();await f.CheckFileBehavior(args[1]+".files");await f.CheckObfuscationBehavior(args[1]+".scramble");await f.CheckMergedRestore(args[1]+".merged");await f.CheckDualPage(args[1]+".dual");await f.CheckBackgroundBehavior(args[1]+".background");await f.CheckTutorialBehavior(args[1]+".tutorial");await f.CheckQrBehavior(args[1]+".qr");f.CheckButtonHints();f.CheckLanguageBehavior(args[1]+".language.txt");}
                             catch(Exception ex){uiError=ex;}
                             finally{f.Close();}
                         };
                         Application.Run(f);
                         Application.ThreadException-=handler;if(uiError!=null)throw new Exception("Unhandled UI exception",uiError);
                     }
-                    File.WriteAllText(args[1],"PASS: cover pairing and queue operations, ten independent pages, embedded double PNG restore, background reveal immediately below double PNG, custom JPEG percentage and actual preview size, batch scrambling and original-file SHA-256 restore, queue persists, active navigation highlighting, shared folder, equal-height parallel cards, nine text presets and free drag, three-row scrolling position dropdown, repeated dropdown open/select/close, per-field parameter copy buttons, separate WebUI/ComfyUI TXT files in tag读取 without overwrite, unloaded and empty WebUI panels skipped, wheel zoom at pointer, middle mouse pan, live brush width and strength preview without modifying pixels, rectangle/mosaic-brush gestures and apply/undo/reset, independent file card states, QR generation/import scan/overlay/multiple text layers and background linkage, 50-step undo/redo, async file generation and hash-checked restore, no unhandled UI exceptions.");return 0;
+                    File.WriteAllText(args[1],"PASS: cover pairing and queue operations, eleven independent pages, embedded double PNG restore, background reveal immediately below double PNG, custom JPEG percentage and actual preview size, batch scrambling and original-file SHA-256 restore, queue persists, active navigation highlighting, shared folder, equal-height parallel cards, nine text presets and free drag, three-row scrolling position dropdown, repeated dropdown open/select/close, per-field parameter copy buttons, separate WebUI/ComfyUI TXT files in tag读取 without overwrite, unloaded and empty WebUI panels skipped, wheel zoom at pointer, middle mouse pan, live brush width and strength preview without modifying pixels, rectangle/mosaic-brush gestures and apply/undo/reset, independent file card states, QR generation/import scan/overlay/multiple text layers and background linkage, 50-step undo/redo, async file generation and hash-checked restore, no unhandled UI exceptions.");return 0;
                 }
                 if(args.Length>0 && args[0]=="--render-ui")
                 {
@@ -210,6 +210,8 @@ namespace QQImageSwitch
             base.WndProc(ref m);
         }
         internal void TestWheel(Point at,int delta){OnMouseWheel(new HandledMouseEventArgs(MouseButtons.None,0,at.X,at.Y,delta));}
+        internal void TestClick(){OnClick(EventArgs.Empty);}
+        internal void TestMouseClick(MouseButtons button){OnMouseClick(new MouseEventArgs(button,1,Width/2,Height/2,0));}
         internal void TestPan(Point a,Point b){OnMouseDown(new MouseEventArgs(MouseButtons.Middle,1,a.X,a.Y,0));OnMouseMove(new MouseEventArgs(MouseButtons.Middle,1,b.X,b.Y,0));OnMouseUp(new MouseEventArgs(MouseButtons.Middle,1,b.X,b.Y,0));}
         protected override void OnSizeChanged(EventArgs e)
         {

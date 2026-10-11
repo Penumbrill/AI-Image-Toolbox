@@ -41,7 +41,7 @@ namespace QQImageSwitch
         public static void Run(string dir)
         {
             QueueWheelTests.Run();
-            Directory.CreateDirectory(dir);QrTests.Run(dir);
+            Directory.CreateDirectory(dir);QrTests.Run(dir);QrAiTests.Run(dir);QrAiProgressTests.Run(dir);
             BackgroundRevealTests.Run(dir);
             DualBlendTests.Run(dir);
             using(var c=Art(240,160,false))

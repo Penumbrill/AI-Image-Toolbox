@@ -11,13 +11,26 @@ namespace QQImageSwitch
         static void Require(bool value,string message){if(!value)throw new Exception("QR/text/history: "+message);}
         public static void Run(string folder)
         {
-            CameraCaptureTests.Run();
+            CameraCaptureTests.Run();QrImportTests.Run(Path.Combine(folder,"qr-import"));
             var paperProfile=new BackgroundRevealAuto.Profile{WhiteLow=0,WhiteHigh=255,WhiteFloor=190};
             for(int gray=0;gray<256;gray++){int cover=unchecked((int)0xff000000)|gray<<16|gray<<8|gray;
                 int ink=QrService.OptimizePixel(cover,true,paperProfile),space=QrService.OptimizePixel(cover,false,paperProfile);
                 foreach(int bg in new[]{245,250,255}){int ai=(int)((uint)ink>>24),aspace=(int)((uint)space>>24);int vi=((ink&255)*ai+bg*(255-ai)+127)/255,vs=((space&255)*aspace+bg*(255-aspace)+127)/255;Require(Math.Abs(vi-vs)<=(bg==250?1:3),"QR leakage on near-white background");}
             }
             string dir=Path.Combine(folder,"qr");Directory.CreateDirectory(dir);string url="https://www.pixiv.net/artworks/123456789";
+            foreach(int scene in new[]{0,1,2})using(var photo=SelfTest.Art(1050,1400,scene!=1))
+            {
+                if(scene==1)using(var g=Graphics.FromImage(photo))g.Clear(Color.FromArgb(18,46,63));
+                if(scene==2)using(var g=Graphics.FromImage(photo))g.Clear(Color.FromArgb(239,215,176));
+                QrRegion artRegion;using(var art=QrArt.Compose(photo,url,75,scene==0?75:50,scene==0?65:50,null,out artRegion,0))
+                {
+                    Require(QrService.Scan(art)==url,"artistic QR does not decode");Require(artRegion.Margin==4,"artistic quiet zone missing");
+                    Require(art.GetPixel(0,0).ToArgb()==photo.GetPixel(0,0).ToArgb(),"artistic QR changed pixels outside placement");
+                    string artPath=Path.Combine(dir,"art-"+scene+".png");Codec.SaveAtomic(artPath,QrService.Tag(Codec.StaticPng(art),artRegion));Require(QrService.Read(artPath).Url==url,"artistic QR linkage lost");
+                    using(var smaller=Codec.Fit(art,675,900,Color.White))Require(QrService.Scan(smaller)==url,"resized artistic QR does not decode");
+                    using(var cover=BackgroundRevealAuto.CreateCover(art,0,-1,CancellationToken.None)){BackgroundRevealAuto.Profile profile;using(var hidden=BackgroundRevealAuto.Compose(cover,art,0,false,85,CancellationToken.None,out profile)){QrService.Optimize(hidden,artRegion,cover,profile,CancellationToken.None);using(var black=DualBlend.Render(hidden,false,CancellationToken.None))Require(QrService.Scan(black)==url,"artistic QR/background linkage failed");}}
+                }
+            }
             var names=new CoverTextOptions{Text="First text"};using(var selector=new TextLayerSelector(()=>names,t=>{},()=>{})){Require(selector.TestCaption(0)=="1 · First text","layer title does not show content");selector.RefreshNames(" Changed\n text ");Require(selector.TestCaption(0)=="1 · Changed text"&&names.Text=="First text","live label changed model or lost whitespace normalization");names.Text=new string('A',80);selector.RefreshNames();Require(selector.TestCaption(0).EndsWith("…")&&selector.TestCaption(0).Length<30,"layer caption did not truncate");names.Text="";selector.RefreshNames();Require(selector.TestCaption(0).Length>4,"empty layer name missing");}
             using(var canvas=new CoverCanvas{Size=new Size(500,400),TextPlacement=true})using(var image=new Bitmap(640,480)){canvas.Image=image;int events=0;TextPositionEventArgs last=null;canvas.PositionChanged+=(s,e)=>{events++;last=e;};canvas.TestBurst(new Point(80,80),new Point(390,270),500);Require(events<=3&&last!=null&&last.Finished,"drag burst was not coalesced or final position lost");var expected=canvas.ToImage(new Point(390,270));Require(last.X==(int)Math.Round(expected.X*100/640)&&last.Y==(int)Math.Round(expected.Y*100/480),"coalesced drag changed final coordinates");canvas.Image=null;}
             foreach(string invalid in new[]{"javascript:alert(1)","file:///C:/test","https://user:pass@example.com","not a link"}){bool rejected=false;try{QrService.Website(invalid);}catch(ArgumentException){rejected=true;}Require(rejected,"unsafe link accepted");}

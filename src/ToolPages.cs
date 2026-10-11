@@ -107,6 +107,7 @@ namespace QQImageSwitch
         protected readonly FlowLayoutPanel Actions;
         public readonly FolderPicker OutputFolder;
         public bool Busy {get;private set;}
+        public bool BackgroundBusy {get;private set;}
         CancellationTokenSource cancellation;
         readonly Action<bool> changed;
         readonly Button stop;
@@ -148,21 +149,21 @@ namespace QQImageSwitch
         protected Button ActionButton(string title,EventHandler action,bool primary=true)
         {var b=Ui.Button(title,action,primary);Actions.Controls.Add(b);Actions.Controls.SetChildIndex(stop,Actions.Controls.Count-1);return b;}
         public void Cancel(){if(cancellation!=null)cancellation.Cancel();Status.Text="正在停止；已完成的文件保留。";}
-        protected async Task Run(Func<CancellationToken,Task<string>> work,bool showResult=true)
+        protected async Task Run(Func<CancellationToken,Task<string>> work,bool showResult=true,bool background=false)
         {
-            if(Busy)return;Busy=true;cancellation=new CancellationTokenSource();if(embedded){foreach(Control c in Body.Controls)if(c!=Actions&&c!=Status)c.Enabled=false;}else Body.Enabled=false;OutputFolder.Enabled=false;stop.Visible=true;UseWaitCursor=true;
-            foreach(Control c in Actions.Controls)if(c!=stop)c.Enabled=false;changed(true);
+            if(Busy)return;Busy=true;BackgroundBusy=background;cancellation=new CancellationTokenSource();if(embedded){foreach(Control c in Body.Controls)if(c!=Actions&&c!=Status)c.Enabled=false;}else Body.Enabled=false;OutputFolder.Enabled=false;stop.Visible=true;UseWaitCursor=!background;
+            foreach(Control c in Actions.Controls)if(c!=stop)c.Enabled=false;if(!background)changed(true);
             try
             {
-                Status.Text="正在处理…";string summary=await work(cancellation.Token);Status.Text=summary.Split('\n')[0];
+                Status.Text="正在处理…";string summary=await work(cancellation.Token);Status.Text=background?summary:summary.Split('\n')[0];
                 if(showResult)using(var f=new ResultForm("处理结果",summary,OutputFolder.ExistingDestination))L.Show(f,FindForm());
             }
             catch(OperationCanceledException){Status.Text="任务已停止；已完成的文件保留。";}
             catch(Exception ex){Status.Text="处理失败："+ex.Message;if(Environment.GetCommandLineArgs().Contains("--ui-test"))throw;using(var f=new ResultForm("处理失败",ex.Message,null))L.Show(f,FindForm());}
             finally
             {
-                Busy=false;if(embedded){foreach(Control c in Body.Controls)c.Enabled=true;}else Body.Enabled=true;OutputFolder.Enabled=true;stop.Visible=false;UseWaitCursor=false;
-                foreach(Control c in Actions.Controls)c.Enabled=true;cancellation.Dispose();cancellation=null;changed(false);
+                Busy=false;BackgroundBusy=false;if(embedded){foreach(Control c in Body.Controls)c.Enabled=true;}else Body.Enabled=true;OutputFolder.Enabled=true;stop.Visible=false;UseWaitCursor=false;
+                foreach(Control c in Actions.Controls)c.Enabled=true;cancellation.Dispose();cancellation=null;if(!background)changed(false);
             }
         }
         internal TableLayoutPanel EmbeddedBody{get{return Body;}}
@@ -203,6 +204,9 @@ namespace QQImageSwitch
         Bitmap image;
         bool hidden=true,playing;
         int dualPreviewVersion;
+#if SELF_TEST
+        Action testCanvasPicker;
+#endif
         Button hiddenButton,coverButton,restoreButton;
         int frame;
         public FileToolPage(int mode,ExportLocation location,ToolPreferences prefs,Action<bool> busyChanged)
@@ -215,7 +219,7 @@ namespace QQImageSwitch
             list=new SoftList {Dock=DockStyle.Top,Height=240,SelectionMode=SelectionMode.MultiExtended,HorizontalScrollbar=true,IntegralHeight=false,Margin=new Padding(0,0,0,12),BorderStyle=BorderStyle.None,BackColor=Color.FromArgb(253,252,255),ForeColor=Ui.Ink};
             var listCard=Ui.Column(new Padding(14,12,14,8));listCard.BackColor=Color.White;listCard.Margin=new Padding(0,0,0,12);Ui.Add(listCard,list);Ui.Add(Body,listCard);
             canvas=new ImageCanvas {Dock=DockStyle.Top,Height=270,MinimumSize=new Size(0,230),Margin=new Padding(0,0,0,12),EmptyText="点击导入图片\n或把文件拖到这里"};
-            canvas.Click+=async delegate{if(files.Count==0)await Pick();};Ui.Add(Body,canvas);
+            canvas.Click+=async delegate{await PickEmptyCanvas();};Ui.Add(Body,canvas);
             fileInfo=Ui.Text("尚未导入图片",9);Ui.Add(Body,fileInfo);
             list.SelectedIndexChanged+=delegate{if(!playing)ShowSelected();};
             if(kind==1)
@@ -240,6 +244,14 @@ namespace QQImageSwitch
             FinishLayout();SetPreviewViewport(Scroller);
         }
         internal void SetPreviewViewport(Control viewport){canvas.FollowViewport(viewport,.54,230,720);}
+        async Task PickEmptyCanvas()
+        {
+            if(Busy||canvas.Image!=null)return;
+#if SELF_TEST
+            if(testCanvasPicker!=null){testCanvasPicker();return;}
+#endif
+            await Pick();
+        }
         public static NumericUpDown Number(int min,int max,int value){return new SoftNumber {Minimum=min,Maximum=max,Value=value,Width=115,Margin=new Padding(0,0,16,10)};}
         internal async Task Pick()
         {
@@ -358,6 +370,19 @@ namespace QQImageSwitch
             }),report);
         }
 #if SELF_TEST
+        internal void CheckEmptyCanvasClick()
+        {
+            Clear();int picks=0;testCanvasPicker=delegate{picks++;};
+            try
+            {
+                canvas.TestClick();if(picks!=1)throw new Exception("Empty file canvas did not request image selection");
+                Demo();list.ClearSelected();if(files.Count==0||canvas.Image!=null)throw new Exception("File canvas deselection fixture was not empty");
+                canvas.TestClick();if(picks!=2)throw new Exception("Empty file canvas ignored image selection while queue retained files");
+                using(var shown=new Bitmap(20,20)){canvas.Image=shown;canvas.TestClick();canvas.Image=null;}
+                if(picks!=2)throw new Exception("Loaded file canvas unexpectedly requested image selection");
+            }
+            finally{testCanvasPicker=null;Clear();}
+        }
         internal async Task CheckMergedRestore(string folder)
         {
             if(kind!=2)throw new Exception("Wrong restore component");Clear();string input=Path.Combine(folder,"merged-double.png"),expected=Path.Combine(folder,"expected.png");Directory.CreateDirectory(folder);

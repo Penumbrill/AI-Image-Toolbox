@@ -21,6 +21,7 @@ namespace QQImageSwitch
                 {g.Clear(new[]{Color.Red,Color.Lime,Color.Blue}[i]);Codec.SaveAtomic(path,Codec.StaticPng(image));}
             }
             byte[] gif=GifCodec.Merge(files,160,400,true,Color.White,CancellationToken.None,null);
+            CheckCanvasClicks(dir);
             CheckCoverText(dir);
             string animated=Path.Combine(dir,"animated.gif");Codec.SaveAtomic(animated,gif);
             using(var image=Image.FromFile(animated))
@@ -66,6 +67,25 @@ namespace QQImageSwitch
                 image.Save(Path.Combine(dir,"photo.jpg"),ImageFormat.Jpeg);
             }
             File.WriteAllText(Path.Combine(dir,"tools-tests.txt"),"PASS: GIF frame count, order, palette, loop option, letterbox and cancellation; mosaic, blur and solid masks preserve outside pixels; brush covers segment; tiny blur; configurable disguise padding color.");
+        }
+        internal static void CheckCanvasClicks(string dir)
+        {
+            Directory.CreateDirectory(dir);int clicks=0,positions=0,finished=0;
+            using(var canvas=new CoverCanvas{Width=300,Height=220,TextPlacement=true})
+            using(var image=new Bitmap(200,120))
+            {
+                canvas.Click+=delegate{clicks++;};canvas.PositionChanged+=delegate(object sender,TextPositionEventArgs e){positions++;if(e.Finished)finished++;};
+                canvas.TestClick();Check(clicks==1,"Empty placement canvas suppressed the image picker click");
+                canvas.TestDrag(new Point(30,30),new Point(90,90));Check(positions==0,"Empty placement canvas raised placement events");
+                canvas.TextPlacement=false;canvas.TestClick();Check(clicks==2,"Empty ordinary canvas suppressed clicks");
+                canvas.Image=image;canvas.TestClick();Check(clicks==3,"Loaded ordinary canvas suppressed clicks");
+                canvas.TextPlacement=true;canvas.TestDrag(new Point(100,80),new Point(150,110));canvas.TestClick();
+                Check(clicks==3&&positions>=2&&finished==1&&!canvas.PlacementDragging,"Loaded placement drag triggered a picker or failed to finish");
+                canvas.Image=null;canvas.TestClick();Check(clicks==4,"Cleared placement canvas remained unclickable");
+            }
+            string settings=Path.Combine(dir,"canvas-picker.settings");
+            for(int kind=1;kind<=3;kind++)using(var page=new FileToolPage(kind,new ExportLocation(settings),new ToolPreferences(settings),delegate{}))page.CheckEmptyCanvasClick();
+            File.WriteAllText(Path.Combine(dir,"canvas-click-tests.txt"),"PASS: empty and cleared placement canvases forward actual Click events; loaded placement canvases preserve dragging without picking; ordinary canvas clicks remain active; GIF, double PNG restore, and metadata cleaning empty preview clicks work after queue deselection.");
         }
         static void CheckCoverText(string dir)
         {

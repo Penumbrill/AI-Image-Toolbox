@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -66,14 +66,14 @@ namespace QQImageSwitch
             base.OnScroll(e);
             // Native scrolling copies pixels. Repaint glass corners against the new
             // viewport background, retaining the image canvases' cached pixels.
-            Invalidate();RefreshBackgrounds(this);
+            Invalidate(true);RefreshBackgrounds(this);
         }
         static void RefreshBackgrounds(Control root)
         {
             foreach(Control child in root.Controls)
             {
                 if(!child.Visible||!child.Bounds.IntersectsWith(root.ClientRectangle))continue;
-                if(child is SoftTable||child is Label)child.Invalidate();
+                if(child is SoftTable||child is Label||child is ButtonBase||child is SoftCombo||child is SoftInput)child.Invalidate();
                 if(child is TableLayoutPanel||child is FlowLayoutPanel)RefreshBackgrounds(child);
             }
         }
@@ -82,7 +82,9 @@ namespace QQImageSwitch
     // owns presentation; this works without a particular GPU or vendor driver.
     class ToolPageHost : SoftPanel
     {
-        protected override CreateParams CreateParams {get{var p=base.CreateParams;p.ExStyle|=0x02000000;return p;}}
+        // Each managed surface buffers its own painting. WS_EX_COMPOSITED on the
+        // whole subtree can retain stale child pixels after native scrolling,
+        // making a painted button appear over a different live input control.
     }
     class SoftTable : TableLayoutPanel
     {
@@ -324,6 +326,7 @@ namespace QQImageSwitch
                         g.DrawLines(pen,new[]{new PointF(x+unit*.31f,y+unit*.10f),new PointF(x+unit*.09f,y+unit*.32f),new PointF(x+unit*.31f,y+unit*.54f)});
                     }
                     else if(NavigationIcon==3){g.DrawLine(pen,x+3,y,x+unit,y+unit);g.DrawLine(pen,x,y+unit,x+unit,y);g.DrawEllipse(pen,x,y,unit,unit);}
+                    else if(NavigationIcon==11){g.DrawRectangle(pen,x,y,unit,unit);g.DrawLine(pen,x+unit*.5f,y,x+unit*.5f,y+unit);g.DrawLine(pen,x+unit*.12f,y+unit*.3f,x+unit*.38f,y+unit*.3f);g.DrawLine(pen,x+unit*.62f,y+unit*.3f,x+unit*.88f,y+unit*.3f);}
                     else if(NavigationIcon==10){foreach(var r in new[]{new RectangleF(x,y,unit*.4f,unit*.4f),new RectangleF(x+unit*.6f,y,unit*.4f,unit*.4f),new RectangleF(x,y+unit*.6f,unit*.4f,unit*.4f)}){g.DrawRectangle(pen,r.X,r.Y,r.Width,r.Height);g.FillRectangle(fill,r.X+r.Width*.3f,r.Y+r.Height*.3f,r.Width*.4f,r.Height*.4f);}g.FillRectangle(fill,x+unit*.6f,y+unit*.6f,unit*.18f,unit*.18f);g.FillRectangle(fill,x+unit*.82f,y+unit*.82f,unit*.18f,unit*.18f);}
                     else if(NavigationIcon==4){for(int row=0;row<2;row++)for(int col=0;col<2;col++)g.FillRectangle(fill,x+col*unit*.58f,y+row*unit*.58f,unit*.38f,unit*.38f);}
                     else if(NavigationIcon==5){g.DrawRectangle(pen,x,y,unit,unit);for(int row=0;row<3;row++)g.DrawLine(pen,x+3,y+3+row*unit*.25f,x+unit-3,y+3+row*unit*.25f);}
@@ -365,6 +368,7 @@ namespace QQImageSwitch
     }
     class SoftCombo : UserControl
     {
+        readonly System.Collections.Generic.List<Control> owners=new System.Collections.Generic.List<Control>();
         public readonly System.Collections.Generic.List<object> Items=new System.Collections.Generic.List<object>();
         int selected=-1;
         ContextMenuStrip menu;
@@ -383,11 +387,21 @@ namespace QQImageSwitch
         {
             SetStyle(ControlStyles.SupportsTransparentBackColor|ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|ControlStyles.OptimizedDoubleBuffer,true);
             BackColor=Color.Transparent;ForeColor=Ui.Ink;Height=42;TabStop=true;Cursor=Cursors.Hand;AccessibleRole=AccessibleRole.ComboBox;
-            Click+=delegate{ShowChoices();};KeyDown+=delegate(object sender,KeyEventArgs e){if(e.KeyCode==Keys.Space||e.KeyCode==Keys.Enter||e.KeyCode==Keys.Down||e.KeyCode==Keys.F4){ShowChoices();e.Handled=true;}};
+            Click+=delegate{ShowChoices();};KeyDown+=delegate(object sender,KeyEventArgs e){if(e.KeyCode==Keys.Space||e.KeyCode==Keys.Enter||e.KeyCode==Keys.Down||e.KeyCode==Keys.F4){ShowChoices();e.Handled=true;e.SuppressKeyPress=true;}};
+            ParentChanged+=delegate{WatchOwners();};VisibleChanged+=OwnerMoved;EnabledChanged+=OwnerMoved;
         }
+        void WatchOwners()
+        {
+            foreach(var owner in owners){owner.LocationChanged-=OwnerMoved;owner.SizeChanged-=OwnerMoved;var scroll=owner as ScrollableControl;if(scroll!=null)scroll.Scroll-=OwnerScrolled;}owners.Clear();
+            for(Control owner=Parent;owner!=null;owner=owner.Parent){owners.Add(owner);owner.LocationChanged+=OwnerMoved;owner.SizeChanged+=OwnerMoved;var scroll=owner as ScrollableControl;if(scroll!=null)scroll.Scroll+=OwnerScrolled;}
+        }
+        void OwnerMoved(object sender,EventArgs e){CloseChoices();}
+        void OwnerScrolled(object sender,ScrollEventArgs e){CloseChoices();}
+        internal void CloseChoices(){if(menu!=null&&menu.Visible)menu.Close();if(scrollingMenu!=null&&scrollingMenu.Visible)scrollingMenu.Close();}
         void ShowChoices()
         {
             if(!Enabled||Items.Count==0||IsDisposed)return;
+            WatchOwners();
             if(VisibleRows>0){ShowScrollingChoices();return;}
             if(menu==null)menu=new ContextMenuStrip {BackColor=Color.FromArgb(252,250,255),ForeColor=Ui.Ink,ShowImageMargin=false};
             if(menu.Visible)return;menu.Font=Font;
@@ -415,9 +429,10 @@ namespace QQImageSwitch
         }
         void CommitScrollingChoice(){if(choices.SelectedIndex<0)return;int index=choices.SelectedIndex;scrollingMenu.Close(ToolStripDropDownCloseReason.ItemClicked);Focus();SelectedIndex=index;}
         internal bool PopupVisible {get{return menu!=null&&menu.Visible||scrollingMenu!=null&&scrollingMenu.Visible;}}
+        internal void TestOpen(){ShowChoices();Application.DoEvents();if(!PopupVisible)throw new Exception("Choice popup did not open");}
         internal void TestChoice(int index)
         {ShowChoices();Application.DoEvents();if(VisibleRows>0){choices.SelectedIndex=index;CommitScrollingChoice();}else{((ToolStripMenuItem)menu.Items[index]).PerformClick();menu.Close(ToolStripDropDownCloseReason.ItemClicked);}Application.DoEvents();if(selected!=index)throw new Exception("Dropdown choice did not apply");}
-        protected override void Dispose(bool disposing){if(disposing){if(menu!=null){menu.Dispose();menu=null;}if(scrollingMenu!=null){scrollingMenu.Dispose();scrollingMenu=null;}}base.Dispose(disposing);}
+        protected override void Dispose(bool disposing){if(disposing){foreach(var owner in owners){owner.LocationChanged-=OwnerMoved;owner.SizeChanged-=OwnerMoved;var scroll=owner as ScrollableControl;if(scroll!=null)scroll.Scroll-=OwnerScrolled;}owners.Clear();if(menu!=null){menu.Dispose();menu=null;}if(scrollingMenu!=null){scrollingMenu.Dispose();scrollingMenu=null;}}base.Dispose(disposing);}
         protected override void OnFontChanged(EventArgs e){base.OnFontChanged(e);Height=Math.Max(36,Font.Height+16);}
         protected override void OnPaint(PaintEventArgs e)
         {

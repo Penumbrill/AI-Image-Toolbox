@@ -43,7 +43,7 @@ namespace QQImageSwitch
         sealed class Binding
         {
             readonly Control c;string source;bool applying;readonly bool caption;
-            public Binding(Control control){c=control;caption=c is Label||c is Button||c is CheckBox||c is Form||(c is TextBox&&((TextBox)c).ReadOnly&&(c.Tag as string)!="raw");source=caption?Canonical(c.Text):string.Empty;}
+            public Binding(Control control){c=control;caption=(c.Tag as string)!="raw"&&(c is Label||c is Button||c is CheckBox||c is Form||(c is TextBox&&((TextBox)c).ReadOnly));source=caption?Canonical(c.Text):string.Empty;}
             public void Attach(){if(caption)c.TextChanged+=TextChanged;c.ControlAdded+=Added;c.Disposed+=Disposed;Changed+=Refresh;if(!(c is UpDownBase)&&!(c is TextBoxBase)&&!(c is ComboBox))foreach(Control child in c.Controls)Bind(child);Refresh();}
             void Added(object sender,ControlEventArgs e){if(!(c is UpDownBase)&&!(c is TextBoxBase)&&!(c is ComboBox))Bind(e.Control);}
             void TextChanged(object sender,EventArgs e){if(applying)return;source=Canonical(c.Text);Refresh();}

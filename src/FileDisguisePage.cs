@@ -36,7 +36,13 @@ namespace QQImageSwitch
             folder=Path.GetFullPath(folder);Directory.CreateDirectory(folder);string cover=Path.Combine(folder,"封面.jpg"),other=Path.Combine(folder,"另一封面.jpg"),input=Path.Combine(folder,"输入.zip"),second=Path.Combine(folder,"另一个.zip");
             using(var b=new Bitmap(80,60)){using(var g=Graphics.FromImage(b))g.Clear(Color.Lavender);b.Save(cover,System.Drawing.Imaging.ImageFormat.Jpeg);using(var g=Graphics.FromImage(b))g.Clear(Color.Pink);b.Save(other,System.Drawing.Imaging.ImageFormat.Jpeg);}
             var zip=new byte[]{80,75,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};File.WriteAllBytes(input,zip);File.WriteAllBytes(second,zip);OutputFolder.TestSetFolder(folder);
+#if SELF_TEST
+            await video.CheckEmptyCanvasClick(cover);await archive.CheckEmptyCanvasClick(cover);
+#endif
             await video.Choose(cover,true);await archive.Choose(cover,true);await archive.Import(new[]{input,second});
+#if SELF_TEST
+            archive.Select(0);await archive.CheckEmptyCanvasClick(other);
+#endif
             archive.Select(0);await archive.Choose(other,true);if(archive.items[0].CoverPath!=other||archive.items[1].CoverPath!=null)throw new Exception("Individual cover selection changed other rows");
             archive.coverText.Text="批量文字";archive.position.SelectedIndex=0;archive.canvas.TestDrag(new Point(50,60),new Point(180,90));
             if(archive.ActiveText.Position!=3||archive.ActiveText.X==50)throw new Exception("File cover free dragging did not update placement");
@@ -55,6 +61,9 @@ namespace QQImageSwitch
             internal readonly CoverCanvas canvas;internal readonly SoftInput coverText;internal readonly SoftCombo position;
             readonly NumericUpDown size,x,y;readonly SoftCheck numbered;readonly Label coverLabel,queueLabel;
             readonly DataGridView queue;readonly System.Windows.Forms.Timer previewTimer;
+#if SELF_TEST
+            Func<string> testCoverPicker;
+#endif
             internal readonly List<FileBatchItem> items=new List<FileBatchItem>();internal readonly CoverTextOptions text=new CoverTextOptions{Position=3};
             Bitmap baseImage,preview;string cachedPath;bool resetting,dragging,disposed;
             public readonly TableLayoutPanel Card;
@@ -68,6 +77,7 @@ namespace QQImageSwitch
                 packaging=new SoftCombo{Width=300,VisibleRows=3,AccessibleName="Packaging method"};packaging.Items.AddRange(new object[]{"copy /b 等效拼接（JPG）","现有 JPG 封装","PNG 内嵌 ZIP","PNG IDAT 内嵌 ZIP"});packaging.SelectedIndex=1;Ui.Add(Card,Ui.Flow(Ui.Text(video?"视频伪装":"压缩包伪装",14,true),packaging));packagingHint=Ui.Text("",9);Ui.Add(Card,packagingHint);
                 Ui.Add(Card,Ui.Text(video?"批量处理 MP4 · 文件名加 _v2i；PNG 改为 .zip 提取视频，JPG 用本工具还原。":"批量处理 ZIP / RAR / 7Z · 文件名加 _a2i；PNG 统一改为 .zip 提取原包，再解压原包。",9));
                 canvas=new CoverCanvas {Dock=DockStyle.Top,Height=220,MinimumSize=new Size(0,150),Margin=new Padding(0,0,0,10)};Ui.Add(Card,canvas);
+                canvas.Click+=async delegate{await PickEmptyCover();};
                 coverLabel=Ui.Text("默认封面",9);Ui.Add(Card,coverLabel);
                 Ui.Add(Card,Ui.Flow(Ui.Button("设置共用封面…",async delegate{await Pick(true,true);}),Ui.Button("选中换封面…",async delegate{await Pick(true,false);}),Ui.Button("当前封面应用全部",delegate{ApplyAll();}),Ui.Button("选中使用共用封面",delegate{foreach(int i in Selected()){items[i].CoverPath=null;items[i].State="待导出";}RefreshRows();})));
                 coverText=new SoftInput {Width=330,MaxLength=200,Margin=new Padding(0,0,12,10)};
@@ -109,16 +119,47 @@ namespace QQImageSwitch
                 try{if(baseImage==null||key!=cachedPath){if(baseImage!=null)baseImage.Dispose();baseImage=null;if(path==null)baseImage=Codec.DefaultCover(700,438,false);else{bool converted;using(var original=Codec.Decode(FileDisguise.Cover(path,out converted))){var dims=Codec.OutputSize(original,700);baseImage=Codec.Fit(original,dims.Width,dims.Height,Color.White);}}cachedPath=key;}var next=Batch.MakeCover(baseImage,baseImage.Width,baseImage.Height,index+1,numbered.Checked&&index>=0,Color.White,text);canvas.Image=next;if(preview!=null)preview.Dispose();preview=next;coverLabel.Text=(path==null?"默认封面":Path.GetFileName(path))+(index>=0?" · 当前第 "+(index+1)+" 个文件":" · 后续导入文件的共用封面");}
                 catch(Exception ex){canvas.Image=null;coverLabel.Text="封面无法读取："+ex.Message;}
             }
+            async Task PickEmptyCover()
+            {
+                if(page.Busy||canvas.Image!=null)return;
+                if(items.Count>0&&Selected().Length==0){int index=Current();if(index>=0&&index<items.Count)Select(index);}
+                await Pick(true,Selected().Length==0);
+            }
             async Task Pick(bool cover,bool shared)
             {
                 if(page.Busy)return;if(cover&&!shared&&items.Count==0){page.Status.Text="请先导入文件，或选择「设置共用封面」。";return;}
+                if(cover&&!shared&&Selected().Length==0){page.Status.Text="请先在队列中选中要更换封面的文件。";return;}
+#if SELF_TEST
+                if(cover&&testCoverPicker!=null){string selected=testCoverPicker();if(selected!=null)await Choose(selected,true,shared);return;}
+#endif
                 using(var d=new OpenFileDialog{Filter=cover?"图片封面|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif":video?"MP4 视频|*.mp4":"压缩包|*.zip;*.rar;*.7z",Multiselect=!cover})if(L.Show(d,page.FindForm())==DialogResult.OK){if(cover)await Choose(d.FileName,true,shared);else await Import(d.FileNames);}
             }
             public async Task Choose(string path,bool cover,bool shared=false)
             {
                 if(!cover){await Import(new[]{path});return;}if(page.Busy)return;
+                if(!shared&&items.Count>0&&Selected().Length==0){page.Status.Text="请先在队列中选中要更换封面的文件。";return;}
                 await page.Work(async(t,p)=>{await Task.Run(()=>{t.ThrowIfCancellationRequested();bool converted;using(var decoded=Codec.Decode(FileDisguise.Cover(path,out converted))){}},t);if(shared||items.Count==0){SharedCover=path;foreach(var item in items.Where(i=>i.CoverPath==null))item.State="待导出";}else foreach(int i in Selected()){items[i].CoverPath=path;items[i].State="待导出";}RefreshRows();return "封面已选择；原图片保持不变。";},false);
             }
+#if SELF_TEST
+            internal async Task CheckEmptyCanvasClick(string path)
+            {
+                int picks=0;bool placement=canvas.TextPlacement;testCoverPicker=delegate{picks++;return path;};
+                try
+                {
+                    if(items.Count>0)
+                    {
+                        string[] before=items.Select(item=>item.CoverPath).ToArray();queue.ClearSelection();await Pick(true,false);await Choose(path,true,false);
+                        if(picks!=0||!before.SequenceEqual(items.Select(item=>item.CoverPath))||page.Status.Text=="封面已选择；原图片保持不变。")throw new Exception("Unselected file cover reported a successful replacement or opened a picker");
+                    }
+                    int index=Current();bool expectedShared=items.Count==0||index<0;
+                    canvas.TextPlacement=true;canvas.Image=null;canvas.TestClick();for(int retry=0;retry<100&&page.Busy;retry++)await Task.Delay(20);
+                    if(page.Busy||picks!=1||canvas.Image==null)throw new Exception("Empty file disguise cover canvas did not load a selected image");
+                    if(expectedShared?SharedCover!=path:items[index].CoverPath!=path)throw new Exception("Empty file disguise click did not apply the chosen cover to its actual target");
+                    canvas.TestClick();if(picks!=1)throw new Exception("Loaded file disguise placement canvas opened an image picker");
+                }
+                finally{testCoverPicker=null;canvas.TextPlacement=placement;RefreshPreview();}
+            }
+#endif
             public async Task Import(string[] paths)
             {
                 if(page.Busy)return;await page.Work(async(t,p)=>{var accepted=new List<FileBatchItem>();var errors=new List<string>();await Task.Run(()=>{foreach(string path in paths){t.ThrowIfCancellationRequested();try{string ext=Path.GetExtension(path).ToLowerInvariant();if(video?ext!=".mp4":!new[]{".zip",".rar",".7z"}.Contains(ext))throw new InvalidDataException(video?"请选择 MP4 视频。":"请选择单文件 ZIP、RAR 或 7Z。分卷请先合并。");FileDisguise.ValidateFile(path,t);if(!items.Concat(accepted).Any(i=>string.Equals(i.Path,path,StringComparison.OrdinalIgnoreCase)))accepted.Add(new FileBatchItem{Path=path,Length=new FileInfo(path).Length});}catch(OperationCanceledException){throw;}catch(Exception ex){errors.Add(Path.GetFileName(path)+"："+L.T(ex.Message));}}},t);items.AddRange(accepted);RefreshRows();return L.T("已导入 {0} 个文件，共 {1} 个。").Replace("{0}",accepted.Count.ToString()).Replace("{1}",items.Count.ToString())+(errors.Count>0?"\n"+string.Join("\n",errors):"");},false);

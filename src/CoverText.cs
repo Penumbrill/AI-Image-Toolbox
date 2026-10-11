@@ -66,6 +66,11 @@ namespace QQImageSwitch
     {
         public bool TextPlacement;
         public bool PlacementDragging {get{return dragging;}}
+        RectangleF placementRegion;
+        string placementLabel="";
+        // Placement hints belong to the preview control, never to the exported bitmap.
+        public RectangleF PlacementRegion {get{return placementRegion;}set{if(placementRegion==value)return;placementRegion=value;Invalidate();}}
+        public string PlacementLabel {get{return placementLabel;}set{value=value??"";if(placementLabel==value)return;placementLabel=value;Invalidate();}}
         bool dragging,pending;Point pendingPoint;int lastX=-1,lastY=-1;
         readonly Timer dragTimer=new Timer{Interval=33};
         public event EventHandler<TextPositionEventArgs> PositionChanged;
@@ -82,8 +87,37 @@ namespace QQImageSwitch
         protected override void OnMouseMove(MouseEventArgs e){base.OnMouseMove(e);if(dragging){pendingPoint=e.Location;pending=true;}}
         protected override void OnMouseUp(MouseEventArgs e){base.OnMouseUp(e);if(dragging){dragging=false;pending=false;dragTimer.Stop();Position(e.Location,true);Capture=false;}}
         protected override void OnMouseCaptureChanged(EventArgs e){base.OnMouseCaptureChanged(e);if(!Capture&&dragging){dragging=false;dragTimer.Stop();if(pending){pending=false;Position(pendingPoint,true);}}}
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);if(Image==null||placementRegion.Width<=0||placementRegion.Height<=0)return;
+            var location=ToScreen(placementRegion.Location);
+            var bounds=new RectangleF(location.X,location.Y,(float)(placementRegion.Width*PixelScale),(float)(placementRegion.Height*PixelScale));
+            if(float.IsNaN(bounds.X)||float.IsNaN(bounds.Y)||float.IsNaN(bounds.Width)||float.IsNaN(bounds.Height)||float.IsInfinity(bounds.X)||float.IsInfinity(bounds.Y)||float.IsInfinity(bounds.Width)||float.IsInfinity(bounds.Height))return;
+            var clip=RectangleF.Intersect(ImageBounds,ClientRectangle);var visible=RectangleF.Intersect(bounds,clip);
+            if(visible.Width<=0||visible.Height<=0)return;
+            var g=e.Graphics;var state=g.Save();
+            try
+            {
+                g.SetClip(clip,CombineMode.Intersect);g.SmoothingMode=SmoothingMode.AntiAlias;
+                using(var shadow=new Pen(Color.FromArgb(230,255,255,255),4))
+                using(var outline=new Pen(Color.FromArgb(130,91,191),2)){outline.DashStyle=DashStyle.Dash;g.DrawRectangle(shadow,bounds.X,bounds.Y,bounds.Width,bounds.Height);g.DrawRectangle(outline,bounds.X,bounds.Y,bounds.Width,bounds.Height);}
+                if(placementLabel.Length==0||visible.Width<30||visible.Height<20)return;
+                var labelBounds=new RectangleF(visible.X+6,visible.Y+5,Math.Max(1,visible.Width-12),Math.Max(1,visible.Height-10));
+                using(var labelFont=new Font(Font,FontStyle.Bold))
+                using(var format=new StringFormat{FormatFlags=StringFormatFlags.NoWrap,Trimming=StringTrimming.EllipsisCharacter})
+                using(var white=new SolidBrush(Color.FromArgb(245,255,255,255)))
+                using(var purple=new SolidBrush(Color.FromArgb(112,74,170)))
+                {
+                    string label=L.T(placementLabel);
+                    foreach(var offset in new[]{new PointF(-1,-1),new PointF(-1,1),new PointF(1,-1),new PointF(1,1)})
+                    {var shadowBounds=labelBounds;shadowBounds.Offset(offset);g.DrawString(label,labelFont,white,shadowBounds,format);}
+                    g.DrawString(label,labelFont,purple,labelBounds,format);
+                }
+            }
+            finally {g.Restore(state);}
+        }
         protected override void Dispose(bool disposing){if(disposing){dragTimer.Stop();dragTimer.Dispose();}base.Dispose(disposing);}
-        protected override void OnClick(EventArgs e){if(!TextPlacement)base.OnClick(e);}
+        protected override void OnClick(EventArgs e){if(!TextPlacement||Image==null)base.OnClick(e);}
         internal void TestDrag(Point a,Point b){OnMouseDown(new MouseEventArgs(MouseButtons.Left,1,a.X,a.Y,0));OnMouseMove(new MouseEventArgs(MouseButtons.Left,1,b.X,b.Y,0));OnMouseUp(new MouseEventArgs(MouseButtons.Left,1,b.X,b.Y,0));}
         internal void TestBurst(Point a,Point b,int count){OnMouseDown(new MouseEventArgs(MouseButtons.Left,1,a.X,a.Y,0));for(int i=1;i<=count;i++)OnMouseMove(new MouseEventArgs(MouseButtons.Left,1,a.X+(b.X-a.X)*i/count,a.Y+(b.Y-a.Y)*i/count,0));OnMouseUp(new MouseEventArgs(MouseButtons.Left,1,b.X,b.Y,0));}
     }
