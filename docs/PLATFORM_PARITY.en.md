@@ -66,3 +66,7 @@ Windows and Android offer default-off cover scrambling for dual images and file 
 ## 0.3.0 Parameter search and video metadata
 
 All three clients search shifts 0–2 (step 0.1) and rounds 1–20, group identical permutations, and show three preview candidates for confirmation. Parameters may be ambiguous. EXE/APK add an independent video panel for MP4/MOV/M4V and WebM/MKV container metadata removal while preserving encoded audio/video, rotation and duration. The web app remains dedicated to image scrambling.
+
+## Mobile web update (2026-10-14)
+
+Mobile web: use the single Import images control for the system image picker, with multiple selection. Save a new photo to the library before importing; separate camera and file controls are removed. Image decoding has a browser fallback. The default pixel budget accommodates common 12 MP photos, with a lower limit on low-memory devices; images are never resized automatically. HEIC/HEIF depends on browser support: export JPEG/PNG if decoding fails. Touch and hold the processed image to save, or find downloads in browser downloads/Files. Use Safari/Chrome if an in-app browser restricts these actions. EXE/APK are unchanged in this update.

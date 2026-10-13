@@ -4,7 +4,9 @@
 
 Windows / Android 本地图像工具箱。提供双图切换、背景显图、像素混淆、文件封装、GIF、元数据清理、打码、生成参数读取和二维码制作。无需注册，图像处理不上传文件。
 
-本地独立网页版：[打开 HTML](obfuscation/index.html)。单文件本机处理，默认一键生成，支持混淆次数、系数与次数还原候选、批量子集、取消、ZIP 和中英切换。[在线使用](https://pkh2388235687-star.github.io/AI-Image-Toolbox/)；浏览器需支持 Canvas、Worker 和 CompressionStream。
+本地独立网页版：[打开 HTML](obfuscation/index.html)。单文件本机处理，默认一键生成，支持混淆次数、系数与次数还原候选、批量子集、取消、ZIP 和中英切换。[在线使用](https://pkh2388235687-star.github.io/AI-Image-Toolbox/)；浏览器需支持 Canvas 和 Worker。
+
+网页版手机操作：统一点击“导入图片”进入系统图片选择器，支持多选；拍摄后先保存到相册再导入。移除独立拍照和文件按钮。图片解码支持浏览器回退，默认像素预算可容纳常见 1200 万像素照片，低内存设备仍有限制；不会自动缩放。HEIC/HEIF 取决于浏览器支持，无法打开时请另存 JPG/PNG。手机可长按处理结果保存，下载文件在浏览器下载列表或系统“文件”中查看。内置浏览器受限时使用 Safari/Chrome。
 
 ## 安装与开始使用
 

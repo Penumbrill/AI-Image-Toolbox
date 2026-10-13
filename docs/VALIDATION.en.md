@@ -1,3 +1,11 @@
+## Mobile web update validation (2026-10-14)
+
+- Packed paths match the independent original across 576 dimensions; shifts, rounds, color operations and inversion remain identical. A 4032 × 3024 path uses 48,771,072 bytes without a coordinate array per pixel.
+- Actual desktop Chromium checks pass: one native image picker, multiple selection, input reset, missing MIME, FileReader fallback, missing/rejected createImageBitmap fallback, JPEG EXIF orientation, PNG corruption, subsets, language switching, candidates and cancellation. A synthetic 4032 × 3024 JPEG passes decoding, Worker scrambling and full-sized PNG export. A real ZIP download contains two images with correct dimensions.
+- At 390 CSS pixels: no horizontal overflow, three equal queue-action columns, 16px form text and a shorter empty queue.
+- Physical iOS Safari, Android Chrome and in-app photo/download menus require user retesting. Desktop/viewport checks do not establish physical mobile compatibility. HEIC/HEIF support depends on the browser. The default ceiling is 16 MP, lowered to 4 MP on devices reporting low memory; limits report an error without resizing. The separate capture entry is removed; save new photos to the library before importing.
+- Only web source, documentation, tests and deployment checks change; EXE/APK bytes and SHA-256 remain identical.
+
 ## 0.3.0 Validation
 
 - Joint shift/round search: six samples with identical top-three candidates and scores in C#, actual Android Java and web code. Known permutations rank in the top three. Single-pixel and equivalent parameters remain ambiguous.

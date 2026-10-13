@@ -4,7 +4,9 @@
 
 A local Windows / Android image toolbox for dual-image PNGs, background reveal, pixel scrambling, file packaging, GIFs, metadata cleanup, redaction, generation-parameter reading and QR codes. No account is required and image processing does not upload files.
 
-Standalone local web tool: [open HTML](obfuscation/index.html). Single-file local processing with ready-to-use defaults, round counts, shift/round restore candidates, batch subsets, cancellation, ZIP and language switching. [Use online](https://pkh2388235687-star.github.io/AI-Image-Toolbox/). Requires Canvas, Worker and CompressionStream.
+Standalone local web tool: [open HTML](obfuscation/index.html). Single-file local processing with ready-to-use defaults, round counts, shift/round restore candidates, batch subsets, cancellation, ZIP and language switching. [Use online](https://pkh2388235687-star.github.io/AI-Image-Toolbox/). Requires Canvas and Worker.
+
+Mobile web: use the single Import images control for the system image picker, with multiple selection. Save a new photo to the library before importing; separate camera and file controls are removed. Image decoding has a browser fallback. The default pixel budget accommodates common 12 MP photos, with a lower limit on low-memory devices; images are never resized automatically. HEIC/HEIF depends on browser support: export JPEG/PNG if decoding fails. Touch and hold the processed image to save, or find downloads in browser downloads/Files. Use Safari/Chrome if an in-app browser restricts these actions.
 
 ## Install and get started
 

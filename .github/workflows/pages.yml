@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Check standalone delivery
         run: |
+          node tests/web/verify_mobile_core.js
           test -f obfuscation/index.html
           test "$(find obfuscation -type f | wc -l)" -eq 1
           test -z "$(find obfuscation -type l)"

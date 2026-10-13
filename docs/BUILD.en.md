@@ -92,4 +92,4 @@ python tests/web/create_check.py
 python -m http.server 8765 --bind 127.0.0.1
 ```
 
-Open `http://127.0.0.1:8765/build/web-check.html` and run the visible local check. Test controls are generated under ignored `build/` only; the public `obfuscation/index.html` has no test entry. `AIPT_VERIFICATION_DIR` can select a fresh Windows regression output folder to avoid stale AI storage fixtures. The Pages workflow is manual-only and publishes just `obfuscation/`; do not run deployment before local review.
+Open `http://127.0.0.1:8765/build/web-check.html` and run the visible local check. Test controls are generated under ignored `build/` only; the public `obfuscation/index.html` has no test entry. `AIPT_VERIFICATION_DIR` can select a fresh Windows regression output folder to avoid stale AI storage fixtures. The Pages workflow publishes only `obfuscation/` after changes to that directory on main, or a manual trigger. Validate the local page before pushing.

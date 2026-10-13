@@ -2,6 +2,12 @@
 
 2026-10-14 · Windows EXE / Android APK / Web
 
+## 网页移动端更新 / Mobile web update · 2026-10-14
+
+网页版手机操作：统一点击“导入图片”进入系统图片选择器，支持多选；拍摄后先保存到相册再导入。移除独立拍照和文件按钮。图片解码支持浏览器回退，默认像素预算可容纳常见 1200 万像素照片，低内存设备仍有限制；不会自动缩放。HEIC/HEIF 取决于浏览器支持，无法打开时请另存 JPG/PNG。手机可长按处理结果保存，下载文件在浏览器下载列表或系统“文件”中查看。内置浏览器受限时使用 Safari/Chrome。 EXE/APK 与签名保持不变。
+
+Mobile web: use the single Import images control for the system image picker, with multiple selection. Save a new photo to the library before importing; separate camera and file controls are removed. Image decoding has a browser fallback. The default pixel budget accommodates common 12 MP photos, with a lower limit on low-memory devices; images are never resized automatically. HEIC/HEIF depends on browser support: export JPEG/PNG if decoding fails. Touch and hold the processed image to save, or find downloads in browser downloads/Files. Use Safari/Chrome if an in-app browser restricts these actions. EXE/APK and signing are unchanged.
+
 对照线上旧版 main `d57e9197639bf2e701c091c4f8104805af093b3f`（v0.2.0）整理。保留原有 AI 二维码等工具；以下仅列本轮新增与变更。
 Compared with online main `d57e9197639bf2e701c091c4f8104805af093b3f` (v0.2.0). Existing tools, including local AI QR generation, are retained; the changes below describe this update.
 
