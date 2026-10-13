@@ -1,4 +1,4 @@
-# 1.2.4 三端混淆与视频清信息 / Scrambling on three platforms and video metadata cleanup
+# AI Image Editing Tools v0.3.0 — Image Scrambling, Video Metadata Cleanup & Web App / 图片混淆、视频清信息与网页版
 
 2026-10-14 · Windows EXE / Android APK / Web
 
@@ -37,8 +37,8 @@ Web: [图片混淆 / Image scramble](https://pkh2388235687-star.github.io/AI-Ima
 
 | Package | Size | SHA-256 |
 | --- | ---: | --- |
-| Windows/AI-Image-Editing-Tools.exe | 2328576 bytes | `a754ff2b6e427076f69e2f91c7ca667902d161317d3816939852e003bc46af46` |
-| Android/AI-Image-Editing-Tools.apk | 48473430 bytes | `62c5396a42315b60d3464a0fb4acd3c5f935d7790401f3c824cd44b018f9e428` |
+| Windows/AI-Image-Editing-Tools.exe | 2328576 bytes | `1ebcfd0912b2006ed32f0a2a15ac5fcabf5335d5914852a14a4debf4b0209c03` |
+| Android/AI-Image-Editing-Tools.apk | 48473430 bytes | `d8381a7bf2ffe97eb5712130233c24e947577d4640aa65003f233afb913453d1` |
 
 APK signer SHA-256: `4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508` (unchanged).
 

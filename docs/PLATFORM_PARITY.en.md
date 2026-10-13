@@ -63,6 +63,6 @@ Windows, Android and the standalone HTML use Gilbert with shift 1.0, one scrambl
 Windows and Android offer default-off cover scrambling for dual images and file packaging. Text and numbering follow scrambling; restore workflows remain the same. The standalone web handles ordinary scrambling and does not package APNGs or attachments. Platform acceptance and physical devices remain unverified.
 
 
-## 1.2.4 Parameter search and video metadata
+## 0.3.0 Parameter search and video metadata
 
 All three clients search shifts 0–2 (step 0.1) and rounds 1–20, group identical permutations, and show three preview candidates for confirmation. Parameters may be ambiguous. EXE/APK add an independent video panel for MP4/MOV/M4V and WebM/MKV container metadata removal while preserving encoded audio/video, rotation and duration. The web app remains dedicated to image scrambling.

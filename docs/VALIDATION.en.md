@@ -1,4 +1,4 @@
-## 1.2.4 Validation
+## 0.3.0 Validation
 
 - Joint shift/round search: six samples with identical top-three candidates and scores in C#, actual Android Java and web code. Known permutations rank in the top three. Single-pixel and equivalent parameters remain ambiguous.
 - Video: seven FFmpeg-generated tagged MP4/MOV/WebM/MKV cases include mdta, faststart, rotation and JSON attachments. ffprobe confirms tag removal and track properties; encoded-packet and decoded audio/video SHA-256 match before/after. Actual Java and C# outputs are byte-identical. Corrupt inputs and cancellation leave no output. FFmpeg/ffprobe are test dependencies only.
