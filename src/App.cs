@@ -18,7 +18,22 @@ namespace QQImageSwitch
             try
             {
                 if(args.Length>0&&args[0].StartsWith("--prototype-")){try{PackagingPrototype.Command(args);return 0;}catch(Exception ex){Console.Error.WriteLine(ex.Message);return 1;}}
+                if(args.Length>0&&args[0]=="--scramble-options")
+                {
+                    if(args.Length!=8)throw new ArgumentException("--scramble-options input output quality options.json reverse auto report.json");
+                    var options=Inspection.Json().Deserialize<ScrambleOptions>(File.ReadAllText(args[4],System.Text.Encoding.UTF8));
+                    if(options==null)throw new ArgumentException("Missing scramble options");
+                    string path=Obfuscation.Write(args[1],args[2],bool.Parse(args[5]),int.Parse(args[3]),System.Threading.CancellationToken.None,options,bool.Parse(args[6]));
+                    File.WriteAllText(args[7],Inspection.Json().Serialize(new{Path=path,Length=new FileInfo(path).Length}));return 0;
+                }
+                if(args.Length==4&&args[0]=="--compression-check"){File.WriteAllText(args[3],TransmissionChecks.Report(args[1],args[2],System.Threading.CancellationToken.None),System.Text.Encoding.UTF8);return 0;}
 #if SELF_TEST
+                if(args.Length==3&&args[0]=="--parameter-vectors"){ScrambleEngineTests.RankParameters(args[1],args[2]);return 0;}
+                if(args.Length==3&&args[0]=="--video-clean-test"){VideoMetadata.Clean(args[1],args[2],System.Threading.CancellationToken.None);return 0;}
+                if(args.Length==2&&args[0]=="--cover-test"){CoverScrambleTests.Run(args[1]);return 0;}
+                if(args.Length==3&&args[0]=="--round-vectors"){ScrambleEngineTests.Rank(args[1],args[2]);return 0;}
+                if(args.Length==8&&args[0]=="--reference-options"){var o=Inspection.Json().Deserialize<ScrambleOptions>(File.ReadAllText(args[4]));string path=Obfuscation.WriteReference(args[1],args[2],bool.Parse(args[5]),int.Parse(args[3]),System.Threading.CancellationToken.None,o);File.WriteAllText(args[7],Inspection.Json().Serialize(new{Path=path}));return 0;}
+                if(args.Length==3&&args[0]=="--scramble-vectors"){ScrambleEngineTests.Run(args[1],args[2]);return 0;}
                 if(args.Length>0&&args[0]=="--scramble-test"){ObfuscationTests.Run(args[1]);return 0;}
 #endif
                 if(args.Length>0&&(args[0]=="--scramble"||args[0]=="--descramble")){if(args.Length!=5)throw new ArgumentException("--scramble/--descramble input output quality report.json");string path=Obfuscation.Write(args[1],args[2],args[0]=="--descramble",int.Parse(args[3]),System.Threading.CancellationToken.None);File.WriteAllText(args[4],Inspection.Json().Serialize(new{Path=path,Length=new FileInfo(path).Length}));return 0;}
@@ -88,14 +103,14 @@ namespace QQImageSwitch
                         // Use the same message loop as the app so async export continuations stay on the UI thread.
                         f.Shown+=async delegate
                         {
-                            try{f.ChooseLanguage(false);ToolsTests.CheckCanvasClicks(args[1]+".canvas-clicks");await f.CheckEmptyCoverClick(args[1]+".canvas-clicks");f.CheckPairingBehavior();f.CheckNavigationBehavior();f.CheckTextBehavior();await f.CheckInspectionBehavior(args[1]+".export");await f.CheckEditorBehavior();await f.CheckFileBehavior(args[1]+".files");await f.CheckObfuscationBehavior(args[1]+".scramble");await f.CheckMergedRestore(args[1]+".merged");await f.CheckDualPage(args[1]+".dual");await f.CheckBackgroundBehavior(args[1]+".background");await f.CheckTutorialBehavior(args[1]+".tutorial");await f.CheckQrBehavior(args[1]+".qr");f.CheckButtonHints();f.CheckLanguageBehavior(args[1]+".language.txt");}
+                            try{f.ChooseLanguage(false);ToolsTests.CheckCanvasClicks(args[1]+".canvas-clicks");await f.CheckEmptyCoverClick(args[1]+".canvas-clicks");f.CheckPairingBehavior();f.CheckNavigationBehavior();f.CheckTextBehavior();await f.CheckVideoBehavior(args[1]+".video");await f.CheckInspectionBehavior(args[1]+".export");await f.CheckEditorBehavior();await f.CheckFileBehavior(args[1]+".files");await f.CheckObfuscationBehavior(args[1]+".scramble");await f.CheckMergedRestore(args[1]+".merged");await f.CheckDualPage(args[1]+".dual");await f.CheckBackgroundBehavior(args[1]+".background");await f.CheckTutorialBehavior(args[1]+".tutorial");await f.CheckQrBehavior(args[1]+".qr");f.CheckButtonHints();f.CheckLanguageBehavior(args[1]+".language.txt");}
                             catch(Exception ex){uiError=ex;}
                             finally{f.Close();}
                         };
                         Application.Run(f);
                         Application.ThreadException-=handler;if(uiError!=null)throw new Exception("Unhandled UI exception",uiError);
                     }
-                    File.WriteAllText(args[1],"PASS: cover pairing and queue operations, eleven independent pages, embedded double PNG restore, background reveal immediately below double PNG, custom JPEG percentage and actual preview size, batch scrambling and original-file SHA-256 restore, queue persists, active navigation highlighting, shared folder, equal-height parallel cards, nine text presets and free drag, three-row scrolling position dropdown, repeated dropdown open/select/close, per-field parameter copy buttons, separate WebUI/ComfyUI TXT files in tag读取 without overwrite, unloaded and empty WebUI panels skipped, wheel zoom at pointer, middle mouse pan, live brush width and strength preview without modifying pixels, rectangle/mosaic-brush gestures and apply/undo/reset, independent file card states, QR generation/import scan/overlay/multiple text layers and background linkage, 50-step undo/redo, async file generation and hash-checked restore, no unhandled UI exceptions.");return 0;
+                    File.WriteAllText(args[1],"PASS: cover pairing and queue operations, eleven independent pages, embedded double PNG restore, background reveal immediately below double PNG, custom JPEG percentage and actual preview size, two-round batch pixel restoration and plain PNG defaults, queue persists, active navigation highlighting, shared folder, equal-height parallel cards, nine text presets and free drag, three-row scrolling position dropdown, repeated dropdown open/select/close, per-field parameter copy buttons, separate WebUI/ComfyUI TXT files in tag读取 without overwrite, unloaded and empty WebUI panels skipped, wheel zoom at pointer, middle mouse pan, live brush width and strength preview without modifying pixels, rectangle/mosaic-brush gestures and apply/undo/reset, independent file card states, QR generation/import scan/overlay/multiple text layers and background linkage, 50-step undo/redo, async file generation and hash-checked restore, no unhandled UI exceptions.");return 0;
                 }
                 if(args.Length>0 && args[0]=="--render-ui")
                 {
@@ -126,8 +141,8 @@ namespace QQImageSwitch
                 {
                     Console.Error.WriteLine(ex.ToString());
                     if(args[0].StartsWith("--file-")&&args.Length>1)File.WriteAllText(args[args.Length-1]+".failed.txt",ex.ToString());
-                    if(args[0]=="--ui-test"&&args.Length>1)File.WriteAllText(args[1]+".failed.txt",ex.ToString());
 #if SELF_TEST
+                    if(args[0]=="--ui-test"&&args.Length>1)File.WriteAllText(args[1]+".failed.txt",ex.ToString());
                     if(args[0]=="--self-test"&&args.Length>1){Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"FAILED.txt"),ex.ToString());}
 #endif
                 }

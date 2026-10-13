@@ -8,7 +8,7 @@ import zlib
 import os
 
 ROOT = Path(__file__).resolve().parents[2]
-ART = ROOT / 'build' / 'verification'
+ART = Path(os.environ.get('AIPT_VERIFICATION_DIR', ROOT / 'build' / 'verification'))
 EXE = Path(os.environ.get('QQIMAGE_EXE', ROOT / 'build' / 'windows' / 'AI-Image-Editing-Tools.exe'))
 
 

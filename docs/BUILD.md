@@ -79,3 +79,15 @@ Windows 内嵌 ZXing.Net 0.16.11，Android 编译 ZXing core 3.5.4。固定库�
 该“运行时不下载”仅指上述固定二维码库；Windows AI 环境/依赖和两端 AI 模型按需准备。Android 的扩散/识图库已随 APK 提供，手机不安装 Windows Python、PyTorch 或 CUDA。
 
 `--self-test` 包含二维码、白边、联动不透明区、封面灰度隔离、多文字和历史检查；`--ui-test` 包含新页面中英文布局及导出/导入。Android `--test` 编译对应原生位图与触摸检查，只有在真机或模拟器执行才算通过；相机需要实际设备单独测试。
+
+## Scramble and standalone-web tests
+
+Build the test EXE first. Set `AIPT_JAVA_HOME`, `AIPT_SDK_ROOT` and optionally `AIPT_NODE`, then run:
+
+```powershell
+python tests/windows/verify_scramble_options.py
+python tests/web/create_check.py
+python -m http.server 8765 --bind 127.0.0.1
+```
+
+Open `http://127.0.0.1:8765/build/web-check.html` and run the visible local check. Test controls are generated under ignored `build/` only; the public `obfuscation/index.html` has no test entry. `AIPT_VERIFICATION_DIR` can select a fresh Windows regression output folder to avoid stale AI storage fixtures. The Pages workflow is manual-only and publishes just `obfuscation/`; do not run deployment before local review.

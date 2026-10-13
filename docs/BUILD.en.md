@@ -81,3 +81,15 @@ Windows embeds ZXing.Net 0.16.11; Android compiles ZXing core 3.5.4. Pinned libr
 That statement applies to these fixed QR libraries: the Windows AI runtime/dependencies and AI models on both platforms are prepared on demand. Android bundles diffusion/recognition libraries; phones do not install Windows Python, PyTorch or CUDA.
 
 `--self-test` includes QR/border/opaque-linkage checks, grayscale isolation, text layers and history. `--ui-test` covers bilingual layouts and QR export/import. Android `--test` compiles corresponding native bitmap/touch checks; compiling them does not count as running device tests. Camera capture needs separate physical-device validation.
+
+## Scramble and standalone-web tests
+
+Build the test EXE first. Set `AIPT_JAVA_HOME`, `AIPT_SDK_ROOT` and optionally `AIPT_NODE`, then run:
+
+```powershell
+python tests/windows/verify_scramble_options.py
+python tests/web/create_check.py
+python -m http.server 8765 --bind 127.0.0.1
+```
+
+Open `http://127.0.0.1:8765/build/web-check.html` and run the visible local check. Test controls are generated under ignored `build/` only; the public `obfuscation/index.html` has no test entry. `AIPT_VERIFICATION_DIR` can select a fresh Windows regression output folder to avoid stale AI storage fixtures. The Pages workflow is manual-only and publishes just `obfuscation/`; do not run deployment before local review.

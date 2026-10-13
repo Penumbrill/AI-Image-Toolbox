@@ -9,8 +9,8 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Repository checks
@@ -29,17 +29,23 @@ jobs:
   android:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
       - name: Install SDK build packages
         run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"'
+      - name: Prepare pinned runtime and shipped native libraries
+        run: python tools/prepare_android_ci.py
       - name: Build and verify APKs with an ephemeral CI key
+        env:
+          AIPT_ONNXRT_DIR: ${{ github.workspace }}/build/android-ci/ort
+          AIPT_NATIVE_LIB_DIR: ${{ github.workspace }}/build/android-ci/native
         run: |
+          export AIPT_SDK_ROOT="$ANDROID_HOME" AIPT_JAVA_HOME="$JAVA_HOME"
           python android/build.py --test
           python android/build.py

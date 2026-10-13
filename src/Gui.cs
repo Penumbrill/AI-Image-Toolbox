@@ -97,7 +97,7 @@ namespace QQImageSwitch
         Func<string> testCoverPicker;
 #endif
         Label coverName,realName,queueTitle,status;
-        CheckBox numbered;
+        CheckBox numbered,scrambleCover;
         SoftCombo resolution;
         Label dualDescription,coverHeading,realHeading;
         SoftInput coverText;TextLayerSelector textLayers;bool loadingTextLayer;
@@ -157,6 +157,7 @@ namespace QQImageSwitch
             resolution=new SoftCombo {DropDownStyle=ComboBoxStyle.DropDownList,Width=210,Margin=new Padding(0,0,0,10)};
             resolution.Items.AddRange(new object[]{"最长边 1200 像素","最长边 2048 像素","最长边 3200 像素","保留原尺寸"});resolution.SelectedIndex=preferences.Resolution;
             Ui.Add(settings,Ui.Flow(numbered,Ui.Text("导出尺寸："),resolution));
+            scrambleCover=new SoftCheck{Text="封面像素混淆（实验）",AutoSize=true};Ui.Add(settings,scrambleCover);Ui.Add(settings,Ui.Text("默认关闭。开启后按系数 1.0 混淆封面一次，再添加文字和编号；双图内容与文件附件保持原封装，可直接用原功能还原。须保存原图；平台重编码可能破坏动态帧或附件，发布效果需实测。",9));scrambleCover.CheckedChanged+=delegate{RefreshCover();};
             Ui.Add(settings,Ui.Text("编号按下方队列顺序写入封面；原图保持不变。取消勾选可关闭编号。",9));settings.ResumeLayout(true);Ui.Add(content,settings);
 
             var batch=Ui.Column(new Padding(16,14,16,12));batch.BackColor=Color.White;batch.Margin=new Padding(0,0,0,12);
@@ -572,7 +573,7 @@ namespace QQImageSwitch
                 if(previewBase==null||previewBase.Size!=size||previewColor!=preferences.PaddingColor)
                 {if(previewBase!=null)previewBase.Dispose();previewBase=Batch.MakeCover(cover,size.Width,size.Height,1,false,preferences.PaddingColor);}
                 bool stamp=numbered!=null&&numbered.Checked&&index>=0;
-                frontPreview=(Bitmap)previewBase.Clone();preferences.CoverText.Draw(frontPreview,stamp);if(stamp)Batch.StampNumber(frontPreview,Math.Max(1,index+1));
+                frontPreview=Batch.MakeCover(previewBase,previewBase.Width,previewBase.Height,Math.Max(1,index+1),false,null,null,scrambleCover!=null&&scrambleCover.Checked);preferences.CoverText.Draw(frontPreview,stamp);if(stamp)Batch.StampNumber(frontPreview,Math.Max(1,index+1));
                 previewColor=preferences.PaddingColor;
                 coverView.Image=frontPreview;coverName.Text=coverLabel+(index>=0?"  ·  配对第 "+(index+1)+" 张原图":"  ·  新导入图片的初始封面");
             }
@@ -607,9 +608,9 @@ namespace QQImageSwitch
             int index=SelectedIndex();int size=SelectedSize();bool stamp=numbered.Checked;CancellationToken token=cancellation==null?CancellationToken.None:cancellation.Token;
             if(real==null)throw new InvalidOperationException("请先选择一张可读取的原图。");
             if(coverView.Image==null)throw new InvalidOperationException("当前封面无法读取，请重新设置封面。");
-            UpdateCoverText();var text=preferences.CoverText.Copy();
+            UpdateCoverText();var text=preferences.CoverText.Copy();bool mix=scrambleCover.Checked;
             using(var r=(Bitmap)real.Clone())using(var c=cover==null?null:(Bitmap)cover.Clone())
-                return await Task.Run(()=>Batch.Build(c,r,size,index+1,stamp,preferences.PaddingColor,text,token));
+                return await Task.Run(()=>Batch.Build(c,r,size,index+1,stamp,preferences.PaddingColor,text,token,mix));
         }
         async Task ShowPreview()
         {
@@ -658,7 +659,7 @@ namespace QQImageSwitch
             if(string.IsNullOrWhiteSpace(exportFolder.Text)&&!ChooseExportFolder())return;
             if(!RememberExportFolder(true))return;
             {
-                UpdateCoverText();var text=preferences.CoverText.Copy();int max=SelectedSize();bool stamp=numbered.Checked;string folder=exportFolder.Text;var snapshot=items.ToList();SetBusy(true);
+                UpdateCoverText();var text=preferences.CoverText.Copy();int max=SelectedSize();bool stamp=numbered.Checked,mix=scrambleCover.Checked;string folder=exportFolder.Text;var snapshot=items.ToList();SetBusy(true);
                 try
                 {
                     folder=ExportLocation.FunctionFolder(folder,"双图切换");
@@ -673,7 +674,7 @@ namespace QQImageSwitch
                     {
                         CancellationToken token=cancellation.Token;
                         Color background=preferences.PaddingColor;
-                        result=await Task.Run(()=>Batch.Export(snapshot,shared,folder,max,stamp,token,reporter,background,text));
+                        result=await Task.Run(()=>Batch.Export(snapshot,shared,folder,max,stamp,token,reporter,background,text,mix));
                     }
                     status.Text=(result.Cancelled?"任务已停止。":"批量导出完成。")+" 成功 "+result.Files.Count+" 张，失败 "+result.Errors.Count+" 张。";
                     string summary=L.Canonical(status.Text)+Environment.NewLine+"输出文件夹："+folder+Environment.NewLine+Environment.NewLine;
@@ -793,6 +794,7 @@ namespace QQImageSwitch
             if(exportFolder.Text!=chosen)throw new Exception("Folder selected in another page did not reach disguise page");
             exportFolder.Text=previous;RememberExportFolder(false);
         }
+        public Task CheckVideoBehavior(string folder){SwitchPage(3);return ((FileToolPage)pages[3]).CheckVideoBehavior(folder);}
         public Task CheckMergedRestore(string folder){SwitchPage(0);EnsureMergedRestore();folder=Path.GetFullPath(folder);exportFolder.Text=folder;RememberExportFolder(false);return mergedRestore.CheckMergedRestore(folder);}
         public Task CheckObfuscationBehavior(string folder){SwitchPage(2);return ((ObfuscationPage)pages[2]).CheckBehavior(folder);}
         public Task CheckBackgroundBehavior(string folder){SwitchPage(8);return ((BackgroundRevealPage)pages[8]).CheckBehavior(folder);}
@@ -861,6 +863,9 @@ namespace QQImageSwitch
         public async Task CheckDualPage(string folder)
         {
             Directory.CreateDirectory(folder);SwitchPage(0);LoadDemo();EnsureMergedRestore();
+            if(scrambleCover.Checked)throw new Exception("Dual cover trial must default off");
+            byte[] originalPair=await BuildCurrent();scrambleCover.Checked=true;byte[] mixedPair=await BuildCurrent();
+            if(originalPair.SequenceEqual(mixedPair)||!Codec.Restore(originalPair).SequenceEqual(Codec.Restore(mixedPair)))throw new Exception("Cover trial must change the cover and preserve exact hidden content");
             var paths=items.Select(i=>i.Path).ToArray();string text=coverText.Text;
             foreach(bool english in new[]{false,true})
             {
@@ -875,7 +880,7 @@ namespace QQImageSwitch
                     if(bounds.Width==900){CaptureScroll(false);using(var shot=new Bitmap(Width,Height)){DrawToBitmap(shot,new Rectangle(Point.Empty,Size));shot.Save(Path.Combine(folder,(english?"en":"zh")+"-dual.png"));}}
                 }
             }
-            ChooseLanguage(false);
+            scrambleCover.Checked=false;ChooseLanguage(false);
         }
         public void ShowTextDemo(){coverText.Text="点击查看原图";textPosition.SelectedIndex=0;textX.Value=62;textY.Value=70;UpdateCoverText();CaptureScroll(false);}
         public void ShowBrushDemo(){SwitchPage(4);((RedactPage)pages[4]).ShowBrushDemo();}

@@ -46,6 +46,8 @@ namespace QQImageSwitch
             archive.Select(0);await archive.Choose(other,true);if(archive.items[0].CoverPath!=other||archive.items[1].CoverPath!=null)throw new Exception("Individual cover selection changed other rows");
             archive.coverText.Text="批量文字";archive.position.SelectedIndex=0;archive.canvas.TestDrag(new Point(50,60),new Point(180,90));
             if(archive.ActiveText.Position!=3||archive.ActiveText.X==50)throw new Exception("File cover free dragging did not update placement");
+            if(archive.scrambleCover.Checked||video.scrambleCover.Checked)throw new Exception("Cover trial must default off");
+            archive.scrambleCover.Checked=true;
             string c=video.SharedCover;await archive.Generate(true,false);if(video.SharedCover!=c||archive.items.Count!=2||Busy||archive.LastOutputs.Count!=2)throw new Exception("Independent batch state lost");
             if(archive.LastOutputs.Any(p=>!Path.GetFileNameWithoutExtension(p).Contains("_a2i")))throw new Exception("Archive JPG filename does not have a2i marker");
             await archive.Restore(archive.LastOutputs.ToArray(),false);if(archive.LastRestored.Count!=2||archive.LastRestored.Any(p=>!File.ReadAllBytes(p).SequenceEqual(zip)))throw new Exception("File batch restore changed bytes");
@@ -59,7 +61,7 @@ namespace QQImageSwitch
             readonly FileDisguisePage page;readonly bool video;TextLayerSelector layers;internal CoverTextOptions ActiveText {get{return layers==null?text:layers.Active;}}
             void LoadLayer(CoverTextOptions t){resetting=true;try{coverText.Text=t.Text;position.SelectedIndex=Array.IndexOf(Positions,t.Position);size.Value=t.SizePercent;x.Value=t.X;y.Value=t.Y;}finally{resetting=false;}Changed();}
             internal readonly CoverCanvas canvas;internal readonly SoftInput coverText;internal readonly SoftCombo position;
-            readonly NumericUpDown size,x,y;readonly SoftCheck numbered;readonly Label coverLabel,queueLabel;
+            readonly NumericUpDown size,x,y;readonly SoftCheck numbered;internal readonly SoftCheck scrambleCover;readonly Label coverLabel,queueLabel;
             readonly DataGridView queue;readonly System.Windows.Forms.Timer previewTimer;
 #if SELF_TEST
             Func<string> testCoverPicker;
@@ -84,6 +86,7 @@ namespace QQImageSwitch
                 position=new SoftCombo {Width=165,VisibleRows=3,Margin=new Padding(0,0,12,10)};position.Items.AddRange(new object[]{"自由拖动","上左","上右","上中","中左","正中","中右","下左","下中","下右"});position.SelectedIndex=0;
                 size=FileToolPage.Number(2,18,7);x=FileToolPage.Number(0,100,50);y=FileToolPage.Number(0,100,50);
                 Ui.Add(Card,Ui.Flow(Ui.Text("封面文字"),coverText,Ui.Text("放置位置"),position,Ui.Button("清空文字",delegate{coverText.Text="";ActiveText.Text="";previewTimer.Stop();RefreshPreview();})));
+                scrambleCover=new SoftCheck{Text="封面像素混淆（实验）",AutoSize=true};Ui.Add(Card,scrambleCover);Ui.Add(Card,Ui.Text("默认关闭。开启后按系数 1.0 混淆封面一次，再添加文字和编号；双图内容与文件附件保持原封装，可直接用原功能还原。须保存原图；平台重编码可能破坏动态帧或附件，发布效果需实测。",9));scrambleCover.CheckedChanged+=delegate{Changed();};
                 numbered=new SoftCheck {Text="右下角自动编号",Checked=true,AutoSize=true,Margin=new Padding(0,0,16,10)};
                 Ui.Add(Card,Ui.Flow(Ui.Text("文字大小（%）"),size,Ui.Text("横向（%）"),x,Ui.Text("纵向（%）"),y,Ui.Button("文字颜色…",delegate{using(var d=new ColorDialog{Color=ActiveText.Color,FullOpen=true})if(L.Show(d,page.FindForm())==DialogResult.OK){ActiveText.Color=d.Color;Changed();}}),numbered));
                 layers=new TextLayerSelector(()=>text,LoadLayer,delegate{Changed();RefreshPreview();});Ui.Add(Card,layers);
@@ -116,7 +119,7 @@ namespace QQImageSwitch
             void RefreshPreview()
             {
                 if(disposed)return;int index=Current();string path=index>=0&&index<items.Count?(items[index].CoverPath??SharedCover):SharedCover;string key=path??"builtin";
-                try{if(baseImage==null||key!=cachedPath){if(baseImage!=null)baseImage.Dispose();baseImage=null;if(path==null)baseImage=Codec.DefaultCover(700,438,false);else{bool converted;using(var original=Codec.Decode(FileDisguise.Cover(path,out converted))){var dims=Codec.OutputSize(original,700);baseImage=Codec.Fit(original,dims.Width,dims.Height,Color.White);}}cachedPath=key;}var next=Batch.MakeCover(baseImage,baseImage.Width,baseImage.Height,index+1,numbered.Checked&&index>=0,Color.White,text);canvas.Image=next;if(preview!=null)preview.Dispose();preview=next;coverLabel.Text=(path==null?"默认封面":Path.GetFileName(path))+(index>=0?" · 当前第 "+(index+1)+" 个文件":" · 后续导入文件的共用封面");}
+                try{if(baseImage==null||key!=cachedPath){if(baseImage!=null)baseImage.Dispose();baseImage=null;if(path==null)baseImage=Codec.DefaultCover(700,438,false);else{bool converted;using(var original=Codec.Decode(FileDisguise.Cover(path,out converted))){var dims=Codec.OutputSize(original,700);baseImage=Codec.Fit(original,dims.Width,dims.Height,Color.White);}}cachedPath=key;}var next=Batch.MakeCover(baseImage,baseImage.Width,baseImage.Height,index+1,numbered.Checked&&index>=0,Color.White,text,scrambleCover.Checked);canvas.Image=next;if(preview!=null)preview.Dispose();preview=next;coverLabel.Text=(path==null?"默认封面":Path.GetFileName(path))+(index>=0?" · 当前第 "+(index+1)+" 个文件":" · 后续导入文件的共用封面");}
                 catch(Exception ex){canvas.Image=null;coverLabel.Text="封面无法读取："+ex.Message;}
             }
             async Task PickEmptyCover()
@@ -171,9 +174,9 @@ namespace QQImageSwitch
             {
                 if(page.Busy)return;var indices=all?Enumerable.Range(0,items.Count).ToArray():Selected();if(indices.Length==0){page.Status.Text="请先导入并选中文件。";return;}if(!page.OutputFolder.Ready())return;
                 previewTimer.Stop();ActiveText.Text=coverText.Text;layers.RefreshNames();ActiveText.Position=Positions[position.SelectedIndex];ActiveText.SizePercent=(int)size.Value;ActiveText.X=(int)x.Value;ActiveText.Y=(int)y.Value;
-                var originals=indices.Select(i=>items[i]).ToArray();var snapshot=originals.Select(i=>i.Copy()).ToArray();string shared=SharedCover,folder=page.OutputFolder.Destination;bool stamp=numbered.Checked;var options=text.Copy();var ordinals=indices.Select(i=>i+1).ToArray();int prototypeMode=packaging.SelectedIndex;
+                var originals=indices.Select(i=>items[i]).ToArray();var snapshot=originals.Select(i=>i.Copy()).ToArray();string shared=SharedCover,folder=page.OutputFolder.Destination;bool stamp=numbered.Checked,mix=scrambleCover.Checked;var options=text.Copy();var ordinals=indices.Select(i=>i+1).ToArray();int prototypeMode=packaging.SelectedIndex;
                 var rows=new Progress<BatchProgress>(p=>{if(disposed||!page.Busy)return;originals[p.Index].State=snapshot[p.Index].State;queue.Rows[indices[p.Index]].Cells["state"].Value=originals[p.Index].State;page.Status.Text=L.T("已处理 {0}/{1} 个文件").Replace("{0}",p.Completed.ToString()).Replace("{1}",p.Total.ToString());});
-                await page.Work(async(t,p)=>{var result=await Task.Run(()=>FileBatch.Export(snapshot,shared,folder,stamp,options,t,rows,p,ordinals,prototypeMode),t);LastOutputs=result.Files.ToList();for(int i=0;i<originals.Length;i++)originals[i].State=snapshot[i].State;RefreshRows();return Summary(result);},show);
+                await page.Work(async(t,p)=>{var result=await Task.Run(()=>FileBatch.Export(snapshot,shared,folder,stamp,options,t,rows,p,ordinals,prototypeMode,mix),t);LastOutputs=result.Files.ToList();for(int i=0;i<originals.Length;i++)originals[i].State=snapshot[i].State;RefreshRows();return Summary(result);},show);
             }
             static string Summary(BatchResult r){return L.T(r.Cancelled?"任务已停止。成功 {0} 个，失败 {1} 个。":"处理完成。成功 {0} 个，失败 {1} 个。").Replace("{0}",r.Files.Count.ToString()).Replace("{1}",r.Errors.Count.ToString())+"\n"+string.Join("\n",r.Files)+(r.Errors.Count==0?"":"\n"+string.Join("\n",r.Errors.Select(L.T)));}
             public async Task Restore(string[] paths,bool show)
@@ -181,7 +184,7 @@ namespace QQImageSwitch
                 if(page.Busy)return;if(paths==null||paths.Length==0){page.Status.Text="请先导入并选中文件。";return;}if(!page.OutputFolder.Ready())return;string folder=page.OutputFolder.Destination;await page.Work(async(t,p)=>{var result=await Task.Run(()=>{var r=new BatchResult();foreach(string path in paths){try{t.ThrowIfCancellationRequested();r.Files.Add(PackagingPrototype.Restore(path,folder,t,p));}catch(OperationCanceledException){r.Cancelled=true;break;}catch(Exception ex){r.Errors.Add(Path.GetFileName(path)+"："+L.T(ex.Message));}}return r;},t);LastRestored=result.Files.ToList();return Summary(result);},show);
             }
             public void Demo(){coverText.Text=L.T("查看原文件");Changed();RefreshPreview();}
-            public string Fingerprint(){return Inspection.Json().Serialize(new{SharedCover,Files=items.Select(i=>new{i.Path,i.CoverPath,i.Length,i.State}).ToArray(),Layers=text.SaveLayers(),Text=coverText.Text,Position=position.SelectedIndex,Size=size.Value,X=x.Value,Y=y.Value,Numbered=numbered.Checked,Color=ActiveText.Color.ToArgb()});}
+            public string Fingerprint(){return Inspection.Json().Serialize(new{SharedCover,Files=items.Select(i=>new{i.Path,i.CoverPath,i.Length,i.State}).ToArray(),Layers=text.SaveLayers(),Text=coverText.Text,Position=position.SelectedIndex,Size=size.Value,X=x.Value,Y=y.Value,Numbered=numbered.Checked,ScrambleCover=scrambleCover.Checked,Color=ActiveText.Color.ToArgb()});}
             public void Dispose(){disposed=true;L.Changed-=LanguageChanged;previewTimer.Stop();previewTimer.Dispose();canvas.Image=null;if(preview!=null)preview.Dispose();if(baseImage!=null)baseImage.Dispose();}
         }
         sealed class FileCardLayout : SoftTable

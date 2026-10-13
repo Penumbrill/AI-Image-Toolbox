@@ -41,12 +41,17 @@ namespace QQImageSwitch
             if(number>=36 && number<=50) return ((char)(0x32b1+number-36)).ToString();
             return number.ToString();
         }
-        public static Bitmap MakeCover(Image cover, int w, int h, int number, bool stamp,Color? background=null,CoverTextOptions text=null)
+        public static Bitmap MakeCover(Image cover, int w, int h, int number, bool stamp,Color? background=null,CoverTextOptions text=null,bool scrambleCover=false,CancellationToken token=default(CancellationToken))
         {
             var b=cover==null ? Codec.DefaultCover(w,h) : Codec.Fit(cover,w,h,background??Color.White);
-            if(text!=null)text.Draw(b,stamp);
-            if(stamp) StampNumber(b,number);
-            return b;
+            try
+            {
+                if(scrambleCover){var mixed=ScrambleParameters.Transform(b,new ScrambleOptions(),false,token);b.Dispose();b=mixed;}
+                if(text!=null)text.Draw(b,stamp);
+                if(stamp) StampNumber(b,number);
+                return b;
+            }
+            catch{b.Dispose();throw;}
         }
         // Draw the circle ourselves so numbering works even when a font lacks circled glyphs.
         public static void StampNumber(Bitmap b,int number)
@@ -78,11 +83,11 @@ namespace QQImageSwitch
                     g.DrawString(text,font,ink,circle,format);
             }
         }
-        public static byte[] Build(Image cover,Image real,int maxSide,int number,bool stamp,Color? background=null,CoverTextOptions text=null,CancellationToken token=default(CancellationToken))
+        public static byte[] Build(Image cover,Image real,int maxSide,int number,bool stamp,Color? background=null,CoverTextOptions text=null,CancellationToken token=default(CancellationToken),bool scrambleCover=false)
         {
             token.ThrowIfCancellationRequested();Size size=Codec.OutputSize(real,maxSide);
             using(var r=Codec.Fit(real,size.Width,size.Height,Color.Transparent))
-            using(var c=MakeCover(cover,size.Width,size.Height,number,stamp,background,text))
+            using(var c=MakeCover(cover,size.Width,size.Height,number,stamp,background,text,scrambleCover,token))
                 return Codec.Encode(c,r);
         }
         public static string UniqueOutput(string folder,int number,string originalName)
@@ -97,7 +102,7 @@ namespace QQImageSwitch
             while(File.Exists(target)||Directory.Exists(target))target=System.IO.Path.Combine(folder,stem+"_"+(suffix++)+".png");
             return target;
         }
-        public static BatchResult Export(IList<BatchItem> items,Image cover,string folder,int maxSide,bool stamp,CancellationToken token,IProgress<BatchProgress> progress,Color? background=null,CoverTextOptions text=null)
+        public static BatchResult Export(IList<BatchItem> items,Image cover,string folder,int maxSide,bool stamp,CancellationToken token,IProgress<BatchProgress> progress,Color? background=null,CoverTextOptions text=null,bool scrambleCover=false)
         {
             Directory.CreateDirectory(folder);
             var result=new BatchResult();
@@ -111,7 +116,7 @@ namespace QQImageSwitch
                     using(var localCover=items[i].OwnCover && items[i].CoverPath!=null ? Codec.Load(items[i].CoverPath) : null)
                     {
                         Image effectiveCover=items[i].OwnCover ? localCover : cover;
-                        byte[] png=Build(effectiveCover,real,maxSide,i+1,stamp,background,text,token);
+                        byte[] png=Build(effectiveCover,real,maxSide,i+1,stamp,background,text,token,scrambleCover);
                         if(token.IsCancellationRequested){result.Cancelled=true;break;}
                         string output=UniqueOutput(folder,i+1,items[i].Name);
                         Codec.SaveAtomic(output,png);result.Files.Add(output);state="已导出";

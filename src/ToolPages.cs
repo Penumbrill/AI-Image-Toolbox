@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -125,6 +125,7 @@ namespace QQImageSwitch
             OutputFolder=new FolderPicker(location,feature);Ui.Add(Footer,OutputFolder);
             Actions=Ui.Flow();Ui.Add(Footer,Actions);
             stop=Ui.Button("停止任务",delegate{Cancel();});stop.Visible=false;Actions.Controls.Add(stop);
+            if(new[]{"双图切换","还原隐藏图","背景显图","文件伪装","打码 / 模糊","二维码制作"}.Contains(title))Actions.Controls.Add(Ui.Button("压缩模拟检查…",async delegate{await TransmissionChecks.Show(this);}));
             Status=Ui.Text("所有处理在本机完成。",9);Ui.Add(Footer,Status);
             Scroller.ClientSizeChanged+=delegate{LayoutContent();};SizeChanged+=delegate{LayoutContent();};
             languageLayout=delegate{layoutSettled=false;QueueLanguageLayout();};L.Changed+=languageLayout;
@@ -159,7 +160,14 @@ namespace QQImageSwitch
                 if(showResult)using(var f=new ResultForm("处理结果",summary,OutputFolder.ExistingDestination))L.Show(f,FindForm());
             }
             catch(OperationCanceledException){Status.Text="任务已停止；已完成的文件保留。";}
-            catch(Exception ex){Status.Text="处理失败："+ex.Message;if(Environment.GetCommandLineArgs().Contains("--ui-test"))throw;using(var f=new ResultForm("处理失败",ex.Message,null))L.Show(f,FindForm());}
+            catch(Exception ex)
+            {
+                Status.Text="处理失败："+ex.Message;
+#if SELF_TEST
+                if(Environment.GetCommandLineArgs().Contains("--ui-test"))throw;
+#endif
+                using(var f=new ResultForm("处理失败",ex.Message,null))L.Show(f,FindForm());
+            }
             finally
             {
                 Busy=false;BackgroundBusy=false;if(embedded){foreach(Control c in Body.Controls)c.Enabled=true;}else Body.Enabled=true;OutputFolder.Enabled=true;stop.Visible=false;UseWaitCursor=false;
@@ -191,6 +199,8 @@ namespace QQImageSwitch
     public class FileToolPage : ToolPage
     {
         readonly int kind;
+        readonly System.Collections.Generic.List<string> videoFiles=new System.Collections.Generic.List<string>();
+        SoftList videoList;
         Func<string> embeddedRoot;
         readonly List<string> files=new List<string>(),temp=new List<string>();
         readonly ListBox list;
@@ -241,8 +251,23 @@ namespace QQImageSwitch
                 c.AllowDrop=true;c.DragEnter+=delegate(object s,DragEventArgs e){if(!Busy&&e.Data.GetDataPresent(DataFormats.FileDrop))e.Effect=DragDropEffects.Copy;};
                 c.DragDrop+=async delegate(object s,DragEventArgs e){if(!Busy)await Import((string[])e.Data.GetData(DataFormats.FileDrop));};
             }
+            if(kind==3){
+                var imageCard=Ui.Column(new Padding(18));imageCard.BackColor=Color.White;imageCard.Margin=new Padding(0,0,0,16);Ui.Add(imageCard,Ui.Text("图片信息清理",16,true));
+                foreach(Control c in Body.Controls.Cast<Control>().Skip(2).ToArray()){Body.Controls.Remove(c);Ui.Add(imageCard,c);}Actions.Controls.Remove(restoreButton);restoreButton.Text="清理全部图片";Ui.Add(imageCard,Ui.Flow(restoreButton,Ui.Button("清理选中图片",async delegate{await Export(true,true);})));
+                Ui.Add(Body,imageCard);
+                var videoCard=Ui.Column(new Padding(18));videoCard.BackColor=Color.White;videoCard.Margin=new Padding(0,0,0,16);Ui.Add(videoCard,Ui.Text("视频信息清理",16,true));Ui.Add(videoCard,Ui.Text(VideoGuide,9));
+                videoList=new SoftList{Height=190,Dock=DockStyle.Top,SelectionMode=SelectionMode.MultiExtended,IntegralHeight=false,BorderStyle=BorderStyle.None};
+                Ui.Add(videoCard,Ui.Flow(Ui.Button("批量导入视频",delegate{PickVideos();}),Ui.Button("移除选中视频",delegate{foreach(int i in videoList.SelectedIndices.Cast<int>().OrderByDescending(i=>i))videoFiles.RemoveAt(i);RefreshVideos();}),Ui.Button("清空视频",delegate{videoFiles.Clear();RefreshVideos();})));
+                Ui.Add(videoCard,videoList);Ui.Add(videoCard,Ui.Flow(Ui.Button("清理全部视频",async delegate{await ExportVideos(false);},true),Ui.Button("清理选中视频",async delegate{await ExportVideos(true);})));Ui.Add(Body,videoCard);
+                videoCard.AllowDrop=true;videoCard.DragEnter+=delegate(object sender,DragEventArgs e){if(!Busy&&e.Data.GetDataPresent(DataFormats.FileDrop))e.Effect=DragDropEffects.Copy;};videoCard.DragDrop+=delegate(object sender,DragEventArgs e){if(!Busy)AddVideos((string[])e.Data.GetData(DataFormats.FileDrop));};
+            }
             FinishLayout();SetPreviewViewport(Scroller);
         }
+        internal const string VideoGuide="支持 MP4 / MOV / M4V、WebM / MKV。清理 ComfyUI / WebUI 写入容器的工作流、提示词、文本、日期与附件，不重编码音视频。保留尺寸、帧率、音轨、时长及旋转；原文件保留。不清除画面水印或编码流内的数据；不支持的容器会报错。";
+        void PickVideos(){if(Busy)return;using(var d=new OpenFileDialog{Title="批量导入视频",Filter="视频|*.mp4;*.mov;*.m4v;*.webm;*.mkv",Multiselect=true})if(L.Show(d,FindForm())==DialogResult.OK)AddVideos(d.FileNames);}
+        internal void AddVideos(string[] paths){foreach(string p in paths){string full=Path.GetFullPath(p);if(File.Exists(full)&&VideoMetadata.Supported(Path.GetExtension(full).ToLowerInvariant())&&!videoFiles.Contains(full,StringComparer.OrdinalIgnoreCase))videoFiles.Add(full);}RefreshVideos();}
+        void RefreshVideos(){videoList.Items.Clear();foreach(string path in videoFiles)videoList.Items.Add(Path.GetFileName(path)+" · "+new FileInfo(path).Length.ToString("N0")+" B");}
+        internal async Task ExportVideos(bool selected,bool report=true){if(Busy)return;var input=(selected?videoList.SelectedIndices.Cast<int>().Select(i=>videoFiles[i]):videoFiles).ToArray();if(input.Length==0){Status.Text="请先导入或选中视频。";return;}if(!OutputFolder.Ready())return;string folder=OutputFolder.Destination;IProgress<int> progress=new Progress<int>(n=>Status.Text="正在处理 "+n+" / "+input.Length+"…");await Run(token=>Task.Run(()=>{int count=0;var errors=new List<string>();for(int i=0;i<input.Length;i++){token.ThrowIfCancellationRequested();try{VideoMetadata.Clean(input[i],folder,token);count++;}catch(OperationCanceledException){throw;}catch(Exception ex){errors.Add(Path.GetFileName(input[i])+"："+ex.Message);}progress.Report(i+1);}return "视频处理完成："+count+" / "+input.Length+"。"+(errors.Count>0?"\n"+string.Join("\n",errors):"");},token),report);}
         internal void SetPreviewViewport(Control viewport){canvas.FollowViewport(viewport,.54,230,720);}
         async Task PickEmptyCanvas()
         {
@@ -260,7 +285,7 @@ namespace QQImageSwitch
         }
         async Task Import(string[] paths)
         {
-            if(Busy)return;StopPreview();var accepted=new List<string>();var errors=new List<string>();var existing=new HashSet<string>(files,StringComparer.OrdinalIgnoreCase);
+            if(Busy)return;if(kind==3){AddVideos(paths.Where(p=>VideoMetadata.Supported(Path.GetExtension(p).ToLowerInvariant())).ToArray());paths=paths.Where(p=>!VideoMetadata.Supported(Path.GetExtension(p).ToLowerInvariant())).ToArray();if(paths.Length==0)return;}StopPreview();var accepted=new List<string>();var errors=new List<string>();var existing=new HashSet<string>(files,StringComparer.OrdinalIgnoreCase);
             await Run(async token=>
             {
                 await Task.Run(()=>
@@ -337,12 +362,12 @@ namespace QQImageSwitch
             }
         }
         internal void ConfigureEmbeddedRestore(Func<string> root){embeddedRoot=root;OutputFolder.SetFeature("双图切换");foreach(Control c in Body.Controls)if(c is Label&&c.Text=="还原隐藏图")c.Text="还原双图 PNG";}
-        async Task Export(bool report=true)
+        async Task Export(bool report=true,bool selected=false)
         {
             if(Busy)return;
             if(files.Count==0){Status.Text="请先导入图片。";return;}if(kind==1&&files.Count<2){Status.Text="合成 GIF 至少需要两张图片。";return;}
             if(embeddedRoot!=null){string root=embeddedRoot();if(root==null)return;OutputFolder.TestSetFolder(root);}
-            if(!OutputFolder.Ready()){Status.Text="请填写有效的保存位置。";return;}StopPreview();string folder=OutputFolder.Destination;var snapshot=files.ToList();
+            if(!OutputFolder.Ready()){Status.Text="请填写有效的保存位置。";return;}StopPreview();string folder=OutputFolder.Destination;var snapshot=(selected?list.SelectedIndices.Cast<int>().Select(i=>files[i]):files).ToList();if(snapshot.Count==0){Status.Text="请先选中图片。";return;}
             int ms=kind==1?(int)delay.Value:0,max=kind==1?(int)size.Value:0;bool repeat=kind==1&&loop.Checked;Color background=preferences.PaddingColor;
             if(kind==1){preferences.GifDelay=ms;preferences.GifSize=max;preferences.Loop=repeat;try{preferences.Save();}catch(Exception ex){Status.Text="设置无法记住："+ex.Message;}}
             IProgress<int> reporter=new Progress<int>(n=>Status.Text="正在处理 "+n+" / "+snapshot.Count+"…");
@@ -370,6 +395,14 @@ namespace QQImageSwitch
             }),report);
         }
 #if SELF_TEST
+        internal async Task CheckVideoBehavior(string folder){
+            if(kind!=3)throw new Exception("Wrong metadata page");Directory.CreateDirectory(folder);OutputFolder.TestSetFolder(folder);Demo();int images=files.Count;
+            Func<string,byte[],byte[]> box=(type,data)=>{using(var ms=new MemoryStream()){byte[] length=new byte[4];length[0]=(byte)((data.Length+8)>>24);length[1]=(byte)((data.Length+8)>>16);length[2]=(byte)((data.Length+8)>>8);length[3]=(byte)(data.Length+8);ms.Write(length,0,4);byte[] name=System.Text.Encoding.ASCII.GetBytes(type);ms.Write(name,0,4);ms.Write(data,0,data.Length);return ms.ToArray();}};
+            byte[] fixture=box("ftyp",System.Text.Encoding.ASCII.GetBytes("isom0000" )).Concat(box("moov",box("udta",System.Text.Encoding.UTF8.GetBytes("PRIVATE_WORKFLOW")))).Concat(box("mdat",new byte[]{1,2,3,4})).ToArray();
+            string first=Path.Combine(folder,"first.mp4"),second=Path.Combine(folder,"second.mp4");File.WriteAllBytes(first,fixture);File.WriteAllBytes(second,fixture);AddVideos(new[]{first,second,first});if(videoFiles.Count!=2||files.Count!=images)throw new Exception("Video import mixed image state or kept duplicates");videoList.SelectedIndex=1;await ExportVideos(true,false);if(Directory.GetFiles(OutputFolder.Destination,"*.mp4").Length!=1||files.Count!=images||videoFiles.Count!=2)throw new Exception("Selected video export/isolation failed");
+            using(var cancel=new CancellationTokenSource()){cancel.Cancel();string target=Path.Combine(folder,"cancel");bool stopped=false;try{VideoMetadata.Clean(first,target,cancel.Token);}catch(OperationCanceledException){stopped=true;}if(!stopped||Directory.GetFiles(target).Length!=0)throw new Exception("Video cancellation left files");}
+            videoFiles.Clear();RefreshVideos();
+        }
         internal void CheckEmptyCanvasClick()
         {
             Clear();int picks=0;testCanvasPicker=delegate{picks++;};
@@ -633,7 +666,8 @@ namespace QQImageSwitch
             Action save=()=>{if(refreshing)return;prefs.Numbered=numbered.Checked;prefs.Resolution=resolution.SelectedIndex;prefs.GifDelay=(int)delay.Value;prefs.GifSize=(int)size.Value;prefs.Loop=loop.Checked;Save(changed);};
             numbered.CheckedChanged+=delegate{save();};resolution.SelectedIndexChanged+=delegate{save();};delay.ValueChanged+=delegate{save();};size.ValueChanged+=delegate{save();};loop.CheckedChanged+=delegate{save();};
             Ui.Add(Body,Ui.Text("关于",13,true));Ui.Add(Body,Ui.Text("工具集合 · Windows\n图片与二维码均在本机处理；打开网站需要网络及网站规定的访问权限。各页面的图片队列在切换时保留，关闭程序后清空。原始文件保留，输出重名时自动加后缀。",10));
-            Ui.Add(Body,Ui.Text("个人制作信息",13,true));Ui.Add(Body,Ui.Text("制作：光影若水",10));
+            Ui.Add(Body,Ui.Flow(Ui.Button("检查导出图片的压缩兼容性…",async delegate{await TransmissionChecks.Show(FindForm());})));
+            Ui.Add(Body,Ui.Text("项目链接",13,true));
             Ui.Add(Body,Ui.Text("https://github.com/pkh2388235687-star/AI-Image-Toolbox",10));
             Ui.Add(Body,Ui.Flow(Ui.Button("打开 GitHub 项目",delegate{try{Process.Start(new ProcessStartInfo("https://github.com/pkh2388235687-star/AI-Image-Toolbox"){UseShellExecute=true});}catch(Exception){Status.Text=string.Format(L.T("无法打开浏览器，请手动访问：{0}"),"https://github.com/pkh2388235687-star/AI-Image-Toolbox");}})));
             ActionButton("打开保存文件夹",delegate{try{if(OutputFolder.Ready()){Directory.CreateDirectory(OutputFolder.Folder);Process.Start("explorer.exe","\""+OutputFolder.Folder+"\"");}}catch(Exception ex){Status.Text="无法打开文件夹："+ex.Message;}},false);

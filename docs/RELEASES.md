@@ -1,3 +1,123 @@
+# 1.2.4 三端混淆与视频清信息 / Scrambling on three platforms and video metadata cleanup
+
+2026-10-14 · Windows EXE / Android APK / Web
+
+对照线上旧版 main `d57e9197639bf2e701c091c4f8104805af093b3f`（v0.2.0）整理。保留原有 AI 二维码等工具；以下仅列本轮新增与变更。
+Compared with online main `d57e9197639bf2e701c091c4f8104805af093b3f` (v0.2.0). Existing tools, including local AI QR generation, are retained; the changes below describe this update.
+
+## 中文
+
+- 图片混淆统一为 Gilbert 曲线流程，默认系数 1.0、1 次、无损 PNG、原尺寸、颜色调整关闭。一键生成；分别设置混淆/解混淆次数（1–20）与系数（0–2），支持重复混淆与逆向还原。当前页面移除原文件附件恢复等冗余入口，导出普通图片。
+- Windows、Android 与网页共同搜索解混淆系数（步进 0.1）和次数，展示三个还原预览。相同置换归为一组；候选需确认，无法承诺唯一识别未知参数。
+- 新增单文件独立网页版：本地 Worker 处理、批量队列、选中项/全部处理、PNG/JPG 导出、ZIP 下载、取消、预览与中英切换。操作区位于更多设置上方，按钮按功能三列等宽，两栏标题、输入、快捷档及勾选项对齐；适配窄屏。
+- EXE/APK 的生成与批量按钮统一放入保存位置区域。清信息增加图片、视频两个独立板块；视频支持 MP4/MOV/M4V、WebM/MKV 的容器工作流、提示词、文本、日期及附件清理，不重编码音视频，保留旋转、音轨、时长、帧率与尺寸。
+- 双图切换和文件伪装提供默认关闭的封面像素混淆试用。隐藏图与附件保持原有封装，可直接使用原功能还原；文字和编号在混淆后绘制。
+- 同步中英文 README、内置教程、项目结构、功能对照与验证说明；普通界面文案简化，必要许可声明保留。发布目录仅保留 EXE/APK，大小和 SHA-256 列在下方。
+
+## English
+
+- Unify image scrambling around the Gilbert workflow. Defaults: shift 1.0, one round, lossless PNG, original dimensions and color adjustments off. Generate with one click; independently choose forward/reverse rounds (1–20) and shifts (0–2). Remove redundant original-file attachment recovery controls from the current page; export ordinary images.
+- Search restore shifts (step 0.1) and rounds in Windows, Android and web, grouping identical permutations and showing three actual previews for confirmation. Unknown parameters cannot always be identified uniquely.
+- Add a standalone, self-contained web app with local Worker processing, batch queues, checked/all operations, PNG/JPEG export, ZIP downloads, cancellation, previews and Chinese/English switching. Actions precede advanced settings; functional button rows have three equal columns, paired settings align, and narrow-screen layouts are supported.
+- Move EXE/APK generation and batch actions into the destination area. Split metadata removal into independent image/video panels. Video cleanup supports MP4/MOV/M4V and WebM/MKV container workflows, prompts, text, dates and attachments without re-encoding audio/video, preserving rotation, audio, duration, frame rate and dimensions.
+- Add an optional cover-only scramble trial for dual-image and file packaging, off by default. Hidden images and attachments keep their packaging and use the existing restore tools; text and numbering are drawn afterwards.
+- Synchronize bilingual READMEs, bundled tutorials, project structure, parity and validation notes. Simplify ordinary copy while retaining required license notices. The release folder contains only EXE/APK; sizes and SHA-256 follow below.
+
+## 验证与限制 / Validation and limits
+
+六组联合参数候选的 C#、Android Java、网页排序和评分一致；七组带工作流的视频清理前后音视频编码包和解码内容哈希不变，C#/Java 输出逐字节一致。Windows 完整界面回归包括选中视频导出、图片/视频队列独立、取消和语言切换。APK 沿用原签名证书。
+
+Six joint-search samples have identical candidates and scores in C#, Android Java and web. Seven tagged-video cases retain encoded-packet and decoded audio/video hashes, with byte-identical C#/Java outputs. Windows UI regression covers selected video exports, independent queues, cancellation and language switching. APK signing is unchanged.
+
+候选不是确定识别；缩放、重编码或颜色调整可能导致还原失败。Bilibili 请先查看并保存原图。已有普通混淆图发布通过反馈只代表该样本，不承诺平台 100% 通过。封面试用尚未平台验证；Android/iOS 真机验证待用户实测。视频清理仅针对支持的容器元数据，不清除画面水印或编码流内信息；不支持的结构报错。更多细节见 [VALIDATION.md](VALIDATION.md)。
+
+Candidates are not definitive identification. Resizing, re-encoding or color adjustments can prevent restoration. Save the original image on Bilibili. The reported successful ordinary-scramble upload applies only to that sample, not a guaranteed acceptance rate. Cover trials and physical Android/iOS validation remain pending. Video cleaning targets supported container metadata, not visible watermarks or data inside encoded streams; unsupported structures report an error.
+
+Web: [图片混淆 / Image scramble](https://pkh2388235687-star.github.io/AI-Image-Toolbox/)
+
+| Package | Size | SHA-256 |
+| --- | ---: | --- |
+| Windows/AI-Image-Editing-Tools.exe | 2328576 bytes | `a754ff2b6e427076f69e2f91c7ca667902d161317d3816939852e003bc46af46` |
+| Android/AI-Image-Editing-Tools.apk | 48473430 bytes | `62c5396a42315b60d3464a0fb4acd3c5f935d7790401f3c824cd44b018f9e428` |
+
+APK signer SHA-256: `4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508` (unchanged).
+
+# 1.2.3 双图与文件封面混淆试用 / Cover-only scrambling trial
+
+2026-10-13 · 本地待实测，未上传 / Local review, not uploaded
+
+Windows 与 Android 的双图切换和文件伪装新增“封面像素混淆（实验）”，默认关闭。只在绘制文字与编号前混淆封面，双图隐藏内容与文件封装保持原格式，可直接使用原功能还原，无需先解混淆。
+
+Windows and Android add an optional cover-only scramble to dual-image and file packaging. It is off by default and runs before text/numbering. Hidden content and packaged files keep their formats and use the original restore tools without a separate descramble step.
+
+本地两组双图与八组文件封装完成逐像素或逐字节恢复；Android 封面处理类在主机 JVM 的六组像素对照、尺寸及取消检查通过。重新编码会丢失动态帧或附件，这项试用不能承诺平台审核通过率。用户反馈普通混淆图 Bilibili 上传未屏蔽、发布通过；双图与文件的新模式尚未在平台实测。完整验证见 [VALIDATION.md](VALIDATION.md)。
+
+| Package | Size | SHA-256 |
+| --- | ---: | --- |
+| Windows/AI-Image-Editing-Tools.exe | 2312192 bytes | `ed1b23582374e6d6fedcc151778e360703ca80ea2a565a6fa7c8d401f245064f` |
+| Android/AI-Image-Editing-Tools.apk | 48465238 bytes | `ec4ce1a08be488e91f8d813658af9cdfc35889d4269e53c571903573bddc3bcb` |
+
+APK signer SHA-256: `4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508` (unchanged).
+
+# 1.2.2 保存区操作与文案整理 / Destination actions and clearer copy
+
+2026-10-13 · 本地待检查，未上传 / Local review, not uploaded
+
+Windows 与 Android 将生成混淆图及四个批量按钮集中到保存位置区域，沿用其他工具的操作区样式。网页版先显示处理与下载，再显示默认收起的更多设置。移除界面、README 与普通文案中的作者展示和外部算法站点描述；许可证正文保留所需版权声明。中英文 README 新增项目结构，两端教程同步更新。
+
+Windows and Android group Generate and the four batch buttons in the destination area. Web actions precede collapsed advanced settings. Creator displays and external algorithm-site descriptions are removed from ordinary copy; required copyright notices remain in license texts. Both READMEs add the project structure and bundled guides are synchronized.
+
+算法函数保持不变。Windows 完整界面回归通过，包括保存区按钮实际点击、两次批量还原、中英切换和布局检查。网页操作顺序与桌面/窄屏三列等宽通过检查。Android 编译及原签名校验通过，真机未实测。
+
+| Package | Size | SHA-256 |
+| --- | ---: | --- |
+| Windows/AI-Image-Editing-Tools.exe | 2308608 bytes | `af21f1d69909dae65ab5005ad324916db83063142a444aef856acf6f9dca1860` |
+| Android/AI-Image-Editing-Tools.apk | 48461142 bytes | `4165ff73b304ffdd3baaf49589ba3acb89573a083a5231c74684a91f4cc4f9e6` |
+
+APK signer SHA-256: `4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508` (unchanged).
+
+# 1.2.1 图片混淆简化与次数 / Scramble rounds and simpler workflow
+
+本地待检查版本，未上传。默认 Gilbert、系数 1.0、一次混淆与还原、无损 PNG、原尺寸，颜色调整关闭。导入后直接生成；新增分别输入 1–20 次，次数候选展示预览后确认。网页保留工具箱配色，更多设置默认收起，处理区按功能排成等宽三列。混淆页面去掉其他算法、源文件附件、私有参数记录和压缩模拟；其他工具不受此次精简影响。三端说明、教程与 README 同步更新。
+
+Local review build; not uploaded. Defaults: Gilbert, shift 1.0, one scramble/restore round, lossless PNG, original dimensions and color adjustments off. Import and generate. Separate 1–20 round inputs and confirmed restore candidates are added. The web retains toolbox colors, collapses advanced settings and groups equal three-column actions. Other scramble algorithms, source attachments, private records and compression simulation are removed from this page. Other tools remain independent. Guides and READMEs are synchronized.
+
+576 核心逐像素对照、10 组候选排序、网页与 Windows 双向三次 PNG 还原、完整 Windows 界面回归通过。APK 沿用原签名。平台发布审核通过率与 Android/iOS 真机未验收；不声称 100% 通过。详情见 [验证范围](VALIDATION.md) / [validation](VALIDATION.en.md)。
+
+| Package | Size | SHA-256 |
+| --- | ---: | --- |
+| Windows/AI-Image-Editing-Tools.exe | 2309120 bytes | `75d8ab263aabdfc7fbd8a8c073f7944b725891c101db657ad61dd634342fce42` |
+| Android/AI-Image-Editing-Tools.apk | 48461142 bytes | `e1f4c24fafcc333bfb72e4027f9500908466e1f0ea3a11e1630c2466f34830fe` |
+
+APK signer SHA-256: `4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508` (unchanged).
+
+# 1.2 历史本地候选 / Previous local candidate
+
+2026-10-13 · 本地待检查 / Local review, not uploaded
+
+本轮复查补齐三端算法说明、相关参数显隐与默认自动读取；提供默认参数。网页按钮按功能排为三列，区分当前、勾选、全部，压缩模拟说明位于底部。
+
+UI review adds algorithm guidance, relevant controls, default automatic reading and default settings on all platforms. Web actions use three columns for current, checked and all, with explained compression simulation at the bottom.
+
+新增四种统一混淆模式、独立移位系数和编码质量、原版 PicEncrypt 兼容、参数记录与候选确认、压缩模拟，以及本机处理的独立双语 HTML。保留旧 Gilbert 和原文件恢复格式，Android 拆出混淆控制逻辑，原 AI 推理和原生库保持一致。Windows / Android 教程、README、功能对照、算法说明与验证限制同步更新。
+
+Adds four matching scramble algorithms, separate shifts and quality, original PicEncrypt compatibility, recorded parameters, confirmed candidates, compression simulation and a standalone local bilingual HTML. Legacy restoration remains supported. Android controls are extracted from the main page, and native AI libraries are byte-identical to the previous package.
+
+136 组核心互通测试、72 组原版源码外部对照、54 组持久兼容向量通过；Windows 与网页版四种模式双向全 RGBA / 原文件字节恢复通过。手机系统选图、拍照、Android/iOS 真机和大图性能仍需复测。详细记录见 [验证范围](VALIDATION.md) / [validation](VALIDATION.en.md)。
+
+未推送、未上传 Release、未部署 Pages；用户确认后再发布。Pages 工作流仅手动触发，产物只包含 `obfuscation/`。配置采用 [GitHub Pages 官方工作流方式](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。
+
+| Package | Size | SHA-256 |
+| --- | ---: | --- |
+| Windows/AI-Image-Editing-Tools.exe | 2307072 bytes | `c6e124443b4bd850731f2287b815eedae07982209f09e26983726cdf0c655ba7` |
+| Android/AI-Image-Editing-Tools.apk | 48465238 bytes | `a94d7c91b55ec0f62e19cd0497d569bd233ea437d1b23749d704bf50996a14fc` |
+
+APK signer SHA-256: `4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508` (unchanged).
+
+---
+
+## 以前版本记录 / Previous release records
+
 # AI Image Editing Tools — Offline AI QR and cross-platform updates / 本地 AI 二维码与跨平台更新
 
 2026-10-12 · Windows EXE / Android APK
@@ -97,4 +217,4 @@ Download the two packages from this release's Assets. / 请从本次发布的 As
 
 APK signer certificate SHA-256 / APK 签名证书 SHA-256：`4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508`
 
-Author / 作者：Guangying Ruoshui / 光影若水 · [MIT License](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/LICENSE). Third-party code and models retain their own licenses; see [Third-party notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/THIRD_PARTY_NOTICES.md) and [Android native notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/android/native/THIRD_PARTY_NOTICES.md).
+[MIT License](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/LICENSE). Third-party code and models retain their own licenses; see [Third-party notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/THIRD_PARTY_NOTICES.md) and [Android native notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/android/native/THIRD_PARTY_NOTICES.md).

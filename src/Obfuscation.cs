@@ -82,25 +82,45 @@ namespace QQImageSwitch
             try{for(int y=0;y<source.Height;y++)Marshal.Copy(pixels,y*source.Width,IntPtr.Add(locked.Scan0,y*locked.Stride),source.Width);}finally{bitmap.UnlockBits(locked);}
             return bitmap;
         }
-        static void Encode(Bitmap image,Stream stream,int quality,CancellationToken token)
+        static void Encode(Bitmap image,Stream stream,int quality,CancellationToken token,bool black=false)
         {
             if(quality<=0){LosslessPng.WriteBest(image,stream,token);return;}
             if(quality>100)throw new ArgumentOutOfRangeException("quality");
             using(var white=new Bitmap(image.Width,image.Height,PixelFormat.Format24bppRgb))
             {
-                using(var g=Graphics.FromImage(white)){g.Clear(Color.White);g.DrawImageUnscaled(image,0,0);}
+                using(var g=Graphics.FromImage(white)){g.Clear(black?Color.Black:Color.White);g.DrawImageUnscaled(image,0,0);}
                 var encoder=ImageCodecInfo.GetImageEncoders().First(c=>c.FormatID==ImageFormat.Jpeg.Guid);
                 using(var p=new EncoderParameters(1)){p.Param[0]=new EncoderParameter(System.Drawing.Imaging.Encoder.Quality,(long)quality);white.Save(stream,encoder,p);}
             }
         }
         // quality: -1 includes original bytes, 0 lossless pixels, 1..100 JPEG.
+        public static string WriteReference(string input,string output,bool reverse,int quality,CancellationToken token,ScrambleOptions options)
+        {
+            if(quality<0||quality>100)throw new ArgumentOutOfRangeException("quality");
+            var effective=options.Copy();effective.Algorithm=0;
+            using(var source=Load(input))using(var result=ScrambleParameters.Transform(source,effective,reverse,token))
+                return WriteTransformed(input,output,result,quality,token,null,true);
+        }
         public static string Write(string input,string output,bool reverse,int quality,CancellationToken token)
+        { return Write(input,output,reverse,quality,token,null,false); }
+        public static string Write(string input,string output,bool reverse,int quality,CancellationToken token,ScrambleOptions options,bool automatic)
         {
             if(quality < -1||quality>100||(reverse&&quality<0))throw new ArgumentOutOfRangeException("quality");
-            using(var source=Load(input))using(var transformed=Transform(source,reverse,token))
-                return WriteTransformed(input,output,transformed,quality,token);
+            ScrambleOptions effective=options==null?null:options.Copy();
+            if(reverse&&automatic){var stored=ScrambleParameters.Read(input);if(stored!=null){stored.Key=effective==null?"":effective.Key;effective=stored;}}
+            using(var source=Load(input))
+            {
+                if(reverse&&effective!=null&&effective.Width>0&&(effective.Width!=source.Width||effective.Height!=source.Height))throw new InvalidDataException("混淆图片尺寸已改变 / Scrambled image dimensions changed");
+                using(var transformed=effective==null?Transform(source,reverse,token):ScrambleParameters.Transform(source,effective,reverse,token))
+                {
+                    if(effective!=null){effective.Width=source.Width;effective.Height=source.Height;}
+                    return WriteTransformed(input,output,transformed,quality,token,reverse?null:effective);
+                }
+            }
         }
         public static string WriteTransformed(string input,string output,Bitmap transformed,int quality,CancellationToken token)
+        { return WriteTransformed(input,output,transformed,quality,token,null); }
+        public static string WriteTransformed(string input,string output,Bitmap transformed,int quality,CancellationToken token,ScrambleOptions options,bool black=false)
         {
             if(quality < -1||quality>100)throw new ArgumentOutOfRangeException("quality");
             output=Path.GetFullPath(output);Directory.CreateDirectory(Path.GetDirectoryName(output));
@@ -109,7 +129,8 @@ namespace QQImageSwitch
             {
                 using(var target=new FileStream(temp,FileMode.CreateNew,FileAccess.ReadWrite,FileShare.None,1048576))
                 {
-                    token.ThrowIfCancellationRequested();Encode(transformed,target,quality,token);token.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();Encode(transformed,target,quality,token,black);token.ThrowIfCancellationRequested();
+                    if(options!=null)ScrambleParameters.Append(target,options);
                     if(quality==-1)
                     {
                         long imageLength=target.Position;target.Position=0;string imageHash=HashRange(target,imageLength,null,token);

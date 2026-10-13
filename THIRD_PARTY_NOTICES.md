@@ -1,10 +1,10 @@
 # Third-party notices / 第三方版权声明
 
-The project uses the Gilbert traversal algorithm in its C# and Java implementations and Python test reference. Original copyright and BSD-2-Clause terms follow.
+The project uses the Gilbert traversal algorithm in its C# and Java implementations and Python test reference, including the standalone HTML traversal. Original copyright and BSD-2-Clause terms follow.
 
 本项目 C#、Java 实现及 Python 测试参考使用 Gilbert 遍历算法；以下保留原版权与 BSD-2-Clause 条款。
 
-Gilbert space-filling curve (src/Obfuscation.cs, android/src/com/guangyingruoshui/imagetools/Images.java, tests/windows/gilbert2d.py)
+Gilbert space-filling curve (src/Obfuscation.cs, android/src/com/guangyingruoshui/imagetools/Images.java, tests/windows/gilbert2d.py, obfuscation/index.html)
 https://github.com/jakubcerveny/gilbert
 
 BSD 2-Clause License

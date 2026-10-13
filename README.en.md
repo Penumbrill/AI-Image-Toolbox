@@ -4,6 +4,8 @@
 
 A local Windows / Android image toolbox for dual-image PNGs, background reveal, pixel scrambling, file packaging, GIFs, metadata cleanup, redaction, generation-parameter reading and QR codes. No account is required and image processing does not upload files.
 
+Standalone local web tool: [open HTML](obfuscation/index.html). Single-file local processing with ready-to-use defaults, round counts, shift/round restore candidates, batch subsets, cancellation, ZIP and language switching. [Use online](https://pkh2388235687-star.github.io/AI-Image-Toolbox/). Requires Canvas, Worker and CompressionStream.
+
 ## Install and get started
 
 Windows: download and run the [EXE](releases/Windows/AI-Image-Editing-Tools.exe). Android: download and install the [APK](releases/Android/AI-Image-Editing-Tools.apk), granting file or camera permissions when needed. The APK is not for iOS; iOS system cameras can scan the generated website QR codes.
@@ -42,6 +44,7 @@ Store a cover and a second image in an animated PNG. Static previews show the co
 - Choose a longest edge of 1200, 2048 or 3200 pixels, or original size. Covers fit the canvas; inner images may be resized. Original size uses more memory for large files.
 - Numbering is optional. Adjust the current item before applying its cover settings; batch output uses the actual pairings in the queue.
 - Check any subset of queue items, select all or clear the checks. Batch export uses checked items first, otherwise the whole queue. Remove handles checks first, otherwise the current row. Export order follows the queue and actual cover pairings.
+- Scramble cover pixels (experimental) is off by default. It applies one cover permutation at shift 1.0 before text and numbering. Hidden content and file attachments retain their packaging and use the usual restore tools without a separate descramble step. This option supports local publishing trials, without guaranteeing platform approval or recovery after re-encoding.
 
 ### Output, restoration and compatibility
 
@@ -73,27 +76,35 @@ Outputs use the Background reveal subfolder and must remain transparent PNGs. Ex
 <a id="scramble"></a>
 ## 3. Scramble
 
-Rearrange image pixels using a deterministic permutation, then reverse it to restore the image. Choose a mode that retains the original file or one that stores only processed pixels.
+Rearrange image pixels along a Gilbert curve, with single or repeated scrambling and reverse restoration. Default settings are ready to generate.
 
 ### Steps
 
-1. Import images, select an item and compare the before/after previews.
-2. Choose output quality. JPEG quality is adjustable; the preview shows the encoded output and its size.
-3. Scramble the current item or the queue and save the generated files.
-4. Import scrambled files to restore. Pixel restoration reverses the permutation; original-file restoration extracts retained original content from supported outputs.
+1. Import an image. Defaults: shift 1.0, lossless PNG, original dimensions, color adjustments off and one scramble round.
+2. For repeated scrambling, enter an integer from 1 to 20 in Scramble rounds, then click Generate scrambled image. The output includes all requested rounds.
+3. Windows and Android group Generate, Scramble all/selected and Restore actions in the destination area. On the web, Process and download comes before More settings and offers current or batch ZIP downloads. Current, checked and all actions use their corresponding scope.
+4. Import the saved original image to restore. Use the matching coefficient and round count: two scramble rounds require two reverse rounds. If the count is unknown, identify candidates and confirm the preview.
 
 ### Options and usage details
 
-- Original-file quality outputs a PNG with the original file attached, allowing byte-for-byte restoration at the cost of larger files.
-- Lossless PNG (pixels only) retains rearranged pixels. Reversing restores pixels, but not the original encoding or metadata.
-- Compressed JPEG reduces size but its lossy pixel changes cannot be undone by reversing the permutation. Restoration output quality can be set separately.
-- Batch operations follow queue order. Pixel processing uses the first frame of animation; retained original files can contain the entire animation.
+- Gilbert scrambling rearranges pixels at the original dimensions, with a default shift of 1.0. With color adjustments off, unchanged dimensions and pixels, and matching shift and rounds, image pixels can be restored.
+- Shift coefficient: 0–2; 0 means no shift. Higher values or more rounds are not necessarily stronger. Restore with matching coefficient and rounds.
+- Restore shift defaults to 1.0 and must match the original scrambling. Processing preserves input dimensions without resizing.
+- Green enhancement is off by default and adjusts qualifying green pixels. Color changes and clipping are lossy; leave it off for exact restoration.
+- Green reduction is off by default. It adjusts appearance and cannot precisely undo enhancement. Leave it off for ordinary scrambled images.
+- Lossless PNG is the default. JPEG defaults to 95% and saves space but alters pixels. Outputs are ordinary images without source-file attachments or private parameter records.
+- On Bilibili, tap View original and wait for loading before saving, then check width × height. Previews, screenshots, resizing or re-encoding may prevent restoration.
+- Rounds and shift are independent. Each round applies the same pixel permutation; the coefficient is not simply multiplied by the count. All rounds run in memory and encoding happens once at the end.
+- Round identification tries 1–20 counts at the current restore coefficient and shows the three candidates ranked by image continuity. Confirmation is required. Unknown shifts, unusual images, color changes or resizing can prevent identification.
+- Animations use the first frame. The web hides advanced settings initially and keeps the queue, cancellation, language switching and scoped downloads. Three-column rows group scramble, restore, downloads and tasks.
 
 ### Output, restoration and compatibility
 
-Outputs use the Scramble subfolder. Resizing, screenshots, redaction and website re-encoding can break pixel restoration and remove the attached original. This feature obscures appearance; it is not password encryption.
+Client outputs use the Scramble subfolder; web outputs use browser downloads. PNG images with unchanged dimensions and pixels can be restored with matching coefficient and rounds. Lossy re-encoding, resizing, screenshots and green clipping cannot be undone. Browser Canvas may round transparent pixel colors. Original file encoding and metadata are not restored. Platform publishing outcomes require actual verification.
 
 <a id="disguise"></a>
+- Searches shifts 0–2 (step 0.1) and rounds 1–20, ranked by image continuity. Different parameters can give the same permutation, so identification may not be unique. Confirm the preview. Resizing, green adjustment or parameters outside this range may leave no correct candidate.
+
 ## 4. File disguise
 
 Combine a video or archive with a cover in a JPG/PNG-looking file, then extract the original. Videos are not transcoded and source archives are not recompressed.
@@ -113,6 +124,7 @@ Combine a video or archive with a cover in a JPG/PNG-looking file, then extract 
 - Renaming a JPG alone does not guarantee video playback. Third-party extractors differ in support for concatenated files.
 - Android retains the source cover aspect ratio without automatically cropping for packaging. The default longest edge is 1600 pixels; alternatives are 1200, 2048 or original size. The app may further scale proportionally to meet a 512 KiB cover budget. Without a selected cover, the automatic cover is 800×500. Inspect the exported cover.
 - Android provides a manual QQ round-trip check: choose the packaged file before sending and the same packaged file saved after receipt, without extracting it first; compare actual bytes and SHA-256, confirm the client and transfer channel requested on the page, and export this report. It records this particular file comparison and user confirmation, without guaranteeing every QQ version, channel or file.
+- Scramble cover pixels (experimental) is off by default. It applies one cover permutation at shift 1.0 before text and numbering. Hidden content and file attachments retain their packaging and use the usual restore tools without a separate descramble step. This option supports local publishing trials, without guaranteeing platform approval or recovery after re-encoding.
 
 ### Output, restoration and compatibility
 
@@ -143,13 +155,13 @@ Outputs use the Make GIF subfolder. A GIF does not retain original source files;
 <a id="clean"></a>
 ## 6. Clean info
 
-Remove generation prompts, workflows and selected camera metadata while retaining encoded image data, color information and animation structure where supported. Handles PNG/APNG, JPEG, WebP and GIF.
+Separate panels remove generation prompts, workflows and container metadata from images and videos. Images: PNG/APNG, JPG, WebP, GIF. Videos: MP4/MOV/M4V, WebM/MKV. Input files are preserved.
 
 ### Steps
 
-1. Import files and select an item or process the queue.
+1. Import files in the image or video panel; clean selected files or the batch. The two queues are independent.
 2. If generation parameters matter, inspect and export them with Read tags first.
-3. Run cleanup, save the new files and check their appearance and animation.
+3. Clean from the corresponding panel and export new files. Check image display, animation, or video playback and audio.
 
 ### Options and usage details
 
@@ -162,6 +174,8 @@ Remove generation prompts, workflows and selected camera metadata while retainin
 Outputs use the Clean info subfolder and retain the source format where possible. Removed prompts and workflows cannot be reconstructed from the cleaned file; the original remains available.
 
 <a id="redact"></a>
+- The video panel supports MP4/MOV/M4V and WebM/MKV. It removes container workflows, prompts, text, dates and attachments written by ComfyUI/WebUI without re-encoding audio/video, preserving audio, duration, dimensions, frame rate and rotation. It does not remove visible watermarks or information inside encoded streams; unsupported container structures report an error.
+
 ## 7. Redact
 
 Select areas with a rectangle or brush and apply mosaic, blur or solid fill. Supports undo, redo and resetting to the original.
@@ -251,7 +265,7 @@ Outputs use the QR codes subfolder; AI exports PNG. The QR contains the selected
 <a id="settings"></a>
 ## 10. Settings
 
-Set interface language, padding and available default parameters, and view author, project and license information.
+Set interface language, padding and available default parameters, and view project and license information.
 
 ### Steps
 
@@ -264,7 +278,7 @@ Set interface language, padding and available default parameters, and view autho
 
 - Switching tools retains queues and options within the current session, but queues are not permanent projects; save outputs before closing.
 - Use an appropriate longest-edge limit for large images. Batch processing runs sequentially and can be canceled while retaining completed outputs.
-- Author and project links open project information; local processing does not depend on them. The APK is for Android. iOS can scan website QR codes with its camera, but cannot install this APK.
+- Project links open project information; local processing does not depend on them. The APK is for Android. iOS can scan website QR codes with its camera, but cannot install this APK.
 - Queues allow an arbitrary checked subset, Select all and Clear selection. Batch or Export all processes checked items first, or the whole queue when none are checked; Export current uses the current row. Remove handles checked items first, otherwise the current row. Dual-image and disguise output uses each item’s actual cover pairing; checking does not change queue order.
 - Android padding, text and solid redaction support color presets and manual RGBA / HEX entry. Review the color preview before confirmation. Colors affect fitting and actual output; solid redaction directly replaces selected pixels.
 
@@ -272,8 +286,30 @@ Set interface language, padding and available default parameters, and view autho
 
 Each tool uses its own subfolder and avoids overwriting sources. User guide is below Settings, works offline, and provides chapter jumps and return-to-contents buttons.
 
+Web: [Image scramble](https://pkh2388235687-star.github.io/AI-Image-Toolbox/). Images are processed locally in your browser on desktop and mobile.
+
+## Project structure
+
+Source, guides and build entry points are separated by purpose. `build/` holds local caches and verification outputs and is excluded from publication.
+
+```text
+AI-Image-Toolbox/
+├── src/  # Windows client and scrambling algorithms
+├── android/  # Native Android client, resources, tests and builder
+├── obfuscation/index.html  # Standalone web tool (one self-contained HTML)
+├── assets/  # Icons, bilingual guides and interface strings
+├── ai/  # Local AI worker and model manifests
+├── docs/  # Parity, build, validation and release notes
+├── tests/  # Algorithm, compatibility, client and browser tests
+├── releases/  # Local review EXE / APK and checksum manifest
+├── vendor/  # Dependencies and licenses
+├── tools/  # Repository checks
+├── build.ps1  # Windows build entry point
+└── THIRD_PARTY_NOTICES.md  # Third-party license notices
+```
+
 ## Development and licenses
 
 Windows uses .NET Framework / WinForms and Android uses a native Java interface. See [VALIDATION.md](docs/VALIDATION.md) for build and validation notes and [RELEASES.md](docs/RELEASES.md) for release notes.
 
-Author: 光影若水. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Pixel texture fusion needs no models. Windows and Android local AI download open weights on demand and infer on the device. Native Android runtime licenses are in [native/THIRD_PARTY_NOTICES.md](android/native/THIRD_PARTY_NOTICES.md). Model licenses are separate from the app license.
+See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Pixel texture fusion needs no models. Windows and Android local AI download open weights on demand and infer on the device. Native Android runtime licenses are in [native/THIRD_PARTY_NOTICES.md](android/native/THIRD_PARTY_NOTICES.md). Model licenses are separate from the app license.

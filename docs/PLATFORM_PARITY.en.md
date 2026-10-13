@@ -2,7 +2,7 @@
 
 English | [简体中文](PLATFORM_PARITY.md) | [Home](../README.en.md) | [Validation](VALIDATION.en.md)
 
-Updated: 2026-10-12. This table describes actual processing entry points in the current source. Package versions and completed checks are recorded in [Releases](RELEASES.md) and Validation. Implemented features do not imply testing on every phone, model or third-party service.
+Updated: 2026-10-13. This table describes actual processing entry points in the current source. Package versions and completed checks are recorded in [Releases](RELEASES.md) and Validation. Implemented features do not imply testing on every phone, model or third-party service.
 
 ## Image tools and shared operations
 
@@ -53,3 +53,16 @@ Ordinary tools support Android 5+; 32-bit ABI entries provide ordinary-tool comp
 Automatic policy uses 384 pixels below 10 GiB total RAM (320 remains selectable), otherwise 512 pixels, and up to four CPU threads by default. Before inference, SD 1.5 requires at least 3 GiB available system memory and SDXL 9 GiB. Other applications, OS restrictions and model differences can still cause failure; CPU generation time needs measurement on the phone.
 
 The revised 384-pixel circular-point pipeline completed a new complex-image offline native run. Two decoders passed full/reduced scans, manual placement and the full canvas remained intact, and navigation stayed responsive during the approximately 12-minute-50-second run. The square white plate is removed; visible points remain below reference naturalness. Ordinary-tool core/UI regressions and actual formal-APK installation/navigation also passed. Physical ARM64, mobile SDXL and compressed transfer remain untested; see the [latest validation](VALIDATION.en.md).
+
+## Scrambling across platforms
+
+Windows, Android and the standalone HTML use Gilbert with shift 1.0, one scramble/restore round, lossless PNG, original dimensions and color adjustments off by default. Separate 1–20 round inputs, manual restoration, candidate preview confirmation, batch subsets and cancellation are supported. Other algorithms, source attachments, parameter records and compression simulation are removed from the scrambling page. Existing file packaging and checks in other tools remain independent. The web has three-column actions, ZIP and language switching. Encoders can produce different bytes; Canvas alpha color rounding follows browser behavior. Device limits are documented in validation.
+
+## Cover-only trial
+
+Windows and Android offer default-off cover scrambling for dual images and file packaging. Text and numbering follow scrambling; restore workflows remain the same. The standalone web handles ordinary scrambling and does not package APNGs or attachments. Platform acceptance and physical devices remain unverified.
+
+
+## 1.2.4 Parameter search and video metadata
+
+All three clients search shifts 0–2 (step 0.1) and rounds 1–20, group identical permutations, and show three preview candidates for confirmation. Parameters may be ambiguous. EXE/APK add an independent video panel for MP4/MOV/M4V and WebM/MKV container metadata removal while preserving encoded audio/video, rotation and duration. The web app remains dedicated to image scrambling.

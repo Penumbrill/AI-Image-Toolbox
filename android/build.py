@@ -68,7 +68,10 @@ def main():
         shared_libraries.append((source, f'lib/{abi}/libaipt_compat.so'))
     base = REPO / 'build/android'
     base.mkdir(parents=True, exist_ok=True)
-    out = Path(tempfile.mkdtemp(prefix='test-' if TEST else 'release-', dir=base))
+    # Inherit the workspace ACL, including restricted Windows execution tokens.
+    # Python's Windows mkdir(0700) can exclude the calling sandbox token.
+    out = base / (('test-' if TEST else 'release-') + secrets.token_hex(12))
+    out.mkdir()
     assets = out / 'assets'
     assets.mkdir()
     for language in ('zh', 'en'):
@@ -119,6 +122,9 @@ def main():
             sources.append(target)
     sources += sorted((out / 'generated').rglob('*.java'))
     argfile = out / 'javac.args'
+    for source in sources:
+        relative = source.relative_to(out / 'sources') if source.is_relative_to(out / 'sources') else source.relative_to(out / 'generated')
+        (classes / relative.parent).mkdir(parents=True, exist_ok=True)
     argfile.write_text('\n'.join('"' + str(p).replace('\\', '/') + '"' for p in sources), encoding='utf-8')
     run([java / ('bin/javac' + SUFFIX), '-encoding', 'UTF-8', '-source', '8', '-target', '8',
          '-classpath', os.pathsep.join(map(str, (platform, REPO / 'vendor/zxing/zxing-core.jar', ort_jar))), '-d', classes, '@' + str(argfile)])
