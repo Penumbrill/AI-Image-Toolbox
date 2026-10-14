@@ -111,3 +111,5 @@ Physical ARM64 speed and peak memory, ordinary-tool regression on 32-bit Android
 The complete Windows UI regression passed, including algorithm control visibility, translated descriptions and automatic reading enabled by default. Browser checks passed default settings, current/checked/all scopes, cancellation, 54 external vectors and lossless recovery. The 390 px viewport keeps equal three-column action rows without horizontal overflow. Android UI compiles; physical devices remain untested. 50 size/coefficient combinations matched the directly executed baseline curve and pixel permutation. No Bilibili uploads or approval-rate measurements were performed.
 
 Android CI recompiles Java and packages APKs using shipped native libraries plus verified pinned ORT. Native source changes require a separate `android/native/build_native.py` rebuild.
+
+Account synchronization (2026-10-14): project links and the default QR URL use Penumbrill. Changes affect links, copy and embedded release documentation; algorithms, Android application ID and signing certificate remain unchanged.

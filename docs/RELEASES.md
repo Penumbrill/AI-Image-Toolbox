@@ -8,6 +8,12 @@
 
 Mobile web: use the single Import images control for the system image picker, with multiple selection. Save a new photo to the library before importing; separate camera and file controls are removed. Image decoding has a browser fallback. The default pixel budget accommodates common 12 MP photos, with a lower limit on low-memory devices; images are never resized automatically. HEIC/HEIF depends on browser support: export JPEG/PNG if decoding fails. Touch and hold the processed image to save, or find downloads in browser downloads/Files. Use Safari/Chrome if an in-app browser restricts these actions. EXE/APK and signing are unchanged.
 
+## 账号与链接同步 / Account and link synchronization · 2026-10-14
+
+GitHub 用户名更新为 `Penumbrill`，仓库和网页入口同步为 `Penumbrill/AI-Image-Toolbox` 与 `penumbrill.github.io/AI-Image-Toolbox/`。本地源码、HTML、中英文文档及两端内置项目链接同步；重新构建 EXE/APK，保留版本 0.3.0、Android 应用身份和原签名。旧 Pages 网址不自动跳转，请更新书签。
+
+The GitHub username is now `Penumbrill`. Repository and website links use `Penumbrill/AI-Image-Toolbox` and `penumbrill.github.io/AI-Image-Toolbox/`. Synchronize local source, HTML, bilingual documentation and both clients' embedded project links. Rebuild EXE/APK while retaining version 0.3.0, Android application identity and the existing signer. The previous Pages URL does not redirect; update bookmarks.
+
 对照线上旧版 main `d57e9197639bf2e701c091c4f8104805af093b3f`（v0.2.0）整理。保留原有 AI 二维码等工具；以下仅列本轮新增与变更。
 Compared with online main `d57e9197639bf2e701c091c4f8104805af093b3f` (v0.2.0). Existing tools, including local AI QR generation, are retained; the changes below describe this update.
 
@@ -39,12 +45,12 @@ Six joint-search samples have identical candidates and scores in C#, Android Jav
 
 Candidates are not definitive identification. Resizing, re-encoding or color adjustments can prevent restoration. Save the original image on Bilibili. The reported successful ordinary-scramble upload applies only to that sample, not a guaranteed acceptance rate. Cover trials and physical Android/iOS validation remain pending. Video cleaning targets supported container metadata, not visible watermarks or data inside encoded streams; unsupported structures report an error.
 
-Web: [图片混淆 / Image scramble](https://pkh2388235687-star.github.io/AI-Image-Toolbox/)
+Web: [图片混淆 / Image scramble](https://penumbrill.github.io/AI-Image-Toolbox/)
 
 | Package | Size | SHA-256 |
 | --- | ---: | --- |
-| Windows/AI-Image-Editing-Tools.exe | 2328576 bytes | `1ebcfd0912b2006ed32f0a2a15ac5fcabf5335d5914852a14a4debf4b0209c03` |
-| Android/AI-Image-Editing-Tools.apk | 48473430 bytes | `d8381a7bf2ffe97eb5712130233c24e947577d4640aa65003f233afb913453d1` |
+| Windows/AI-Image-Editing-Tools.exe | 2328576 bytes | `228b9306ef0b766fe595d536cc6205cc46b3b06fc1802db5657bc48f66400dc4` |
+| Android/AI-Image-Editing-Tools.apk | 48473430 bytes | `27fea346940dab69f08a07b86b2a224971c9d30015d6b51e534860f756ec9d9c` |
 
 APK signer SHA-256: `4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508` (unchanged).
 
@@ -168,7 +174,7 @@ Windows passed core and bilingual UI regression across 11 pages. Android passed 
 
 A complete offline Android run used real captioning/segmentation models, DreamShaper 8 and QR Monster to fuse a manually placed QR into one complex image. It retained the full 1920×1280 canvas. After local tonal correction, two independent decoders confirmed the payload at full size and 900×600; generation took about 12 minutes 50 seconds.
 
-Locator points can remain visible and naturalness does not yet match every reference. Windows CUDA and Android CPU differ in output and speed. SDXL is experimental; physical ARM64 performance and compressed QQ / WeChat transfers are not comprehensively verified. Compatibility is not guaranteed for every model, selected region or phone released since 2024. See [Validation](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/VALIDATION.en.md) and [Platform comparison](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/PLATFORM_PARITY.en.md).
+Locator points can remain visible and naturalness does not yet match every reference. Windows CUDA and Android CPU differ in output and speed. SDXL is experimental; physical ARM64 performance and compressed QQ / WeChat transfers are not comprehensively verified. Compatibility is not guaranteed for every model, selected region or phone released since 2024. See [Validation](https://github.com/Penumbrill/AI-Image-Toolbox/blob/main/docs/VALIDATION.en.md) and [Platform comparison](https://github.com/Penumbrill/AI-Image-Toolbox/blob/main/docs/PLATFORM_PARITY.en.md).
 
 ## 简体中文
 
@@ -210,7 +216,7 @@ Windows 完成 11 个页面的双语界面与核心功能回归；Android 完成
 
 Android 在断网状态下使用真实识图模型、DreamShaper 8 和 QR Monster 完成一张复杂图的手动融合，保留完整 1920×1280 画布；经局部亮度校准后，两种独立解码器在完整图与 900×600 缩图上核对内容通过，耗时约 12 分 50 秒。
 
-定位点仍可能可见，融合自然度尚未达到所有参考案例。Windows CUDA 与 Android CPU 的效果和速度存在差异；SDXL 为实验备用，ARM64 真机性能及 QQ / 微信压缩传输尚未全面验证。不能保证任意模型、任意选区或所有 2024 年以后上市的手机均可用。详见 [验证范围](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/VALIDATION.md) 与 [两端功能对照](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/docs/PLATFORM_PARITY.md)。
+定位点仍可能可见，融合自然度尚未达到所有参考案例。Windows CUDA 与 Android CPU 的效果和速度存在差异；SDXL 为实验备用，ARM64 真机性能及 QQ / 微信压缩传输尚未全面验证。不能保证任意模型、任意选区或所有 2024 年以后上市的手机均可用。详见 [验证范围](https://github.com/Penumbrill/AI-Image-Toolbox/blob/main/docs/VALIDATION.md) 与 [两端功能对照](https://github.com/Penumbrill/AI-Image-Toolbox/blob/main/docs/PLATFORM_PARITY.md)。
 
 ## Downloads and integrity / 下载与完整性
 
@@ -223,4 +229,4 @@ Download the two packages from this release's Assets. / 请从本次发布的 As
 
 APK signer certificate SHA-256 / APK 签名证书 SHA-256：`4a6e6b133417dd34f3c4b357590e7500f7d92daada25b2f39621ab7b598f1508`
 
-[MIT License](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/LICENSE). Third-party code and models retain their own licenses; see [Third-party notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/THIRD_PARTY_NOTICES.md) and [Android native notices](https://github.com/pkh2388235687-star/AI-Image-Toolbox/blob/main/android/native/THIRD_PARTY_NOTICES.md).
+[MIT License](https://github.com/Penumbrill/AI-Image-Toolbox/blob/main/LICENSE). Third-party code and models retain their own licenses; see [Third-party notices](https://github.com/Penumbrill/AI-Image-Toolbox/blob/main/THIRD_PARTY_NOTICES.md) and [Android native notices](https://github.com/Penumbrill/AI-Image-Toolbox/blob/main/android/native/THIRD_PARTY_NOTICES.md).

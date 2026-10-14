@@ -668,8 +668,8 @@ namespace QQImageSwitch
             Ui.Add(Body,Ui.Text("关于",13,true));Ui.Add(Body,Ui.Text("工具集合 · Windows\n图片与二维码均在本机处理；打开网站需要网络及网站规定的访问权限。各页面的图片队列在切换时保留，关闭程序后清空。原始文件保留，输出重名时自动加后缀。",10));
             Ui.Add(Body,Ui.Flow(Ui.Button("检查导出图片的压缩兼容性…",async delegate{await TransmissionChecks.Show(FindForm());})));
             Ui.Add(Body,Ui.Text("项目链接",13,true));
-            Ui.Add(Body,Ui.Text("https://github.com/pkh2388235687-star/AI-Image-Toolbox",10));
-            Ui.Add(Body,Ui.Flow(Ui.Button("打开 GitHub 项目",delegate{try{Process.Start(new ProcessStartInfo("https://github.com/pkh2388235687-star/AI-Image-Toolbox"){UseShellExecute=true});}catch(Exception){Status.Text=string.Format(L.T("无法打开浏览器，请手动访问：{0}"),"https://github.com/pkh2388235687-star/AI-Image-Toolbox");}})));
+            Ui.Add(Body,Ui.Text("https://github.com/Penumbrill/AI-Image-Toolbox",10));
+            Ui.Add(Body,Ui.Flow(Ui.Button("打开 GitHub 项目",delegate{try{Process.Start(new ProcessStartInfo("https://github.com/Penumbrill/AI-Image-Toolbox"){UseShellExecute=true});}catch(Exception){Status.Text=string.Format(L.T("无法打开浏览器，请手动访问：{0}"),"https://github.com/Penumbrill/AI-Image-Toolbox");}})));
             ActionButton("打开保存文件夹",delegate{try{if(OutputFolder.Ready()){Directory.CreateDirectory(OutputFolder.Folder);Process.Start("explorer.exe","\""+OutputFolder.Folder+"\"");}}catch(Exception ex){Status.Text="无法打开文件夹："+ex.Message;}},false);
             FinishLayout();
         }
